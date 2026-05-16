@@ -1,8 +1,8 @@
-package fr.bastienbories.discorddrivesync.model.drive;
+package fr.bastienbories.discorddrivesync.drive.model;
 
-import fr.bastienbories.discorddrivesync.model.dds.Label;
-import fr.bastienbories.discorddrivesync.model.discord.DiscordMessage;
-import fr.bastienbories.discorddrivesync.model.discord.DiscordUser;
+import fr.bastienbories.discorddrivesync.core.model.Label;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.*;
 
 import java.util.List;

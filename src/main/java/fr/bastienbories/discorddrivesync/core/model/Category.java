@@ -1,6 +1,6 @@
-package fr.bastienbories.discorddrivesync.model.dds;
+package fr.bastienbories.discorddrivesync.core.model;
 
-import fr.bastienbories.discorddrivesync.model.discord.DiscordCategory;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordCategory;
 import jakarta.persistence.*;
 
 import java.util.List;

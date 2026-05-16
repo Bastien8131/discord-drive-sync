@@ -1,7 +1,7 @@
-package fr.bastienbories.discorddrivesync.model.dds;
+package fr.bastienbories.discorddrivesync.core.model;
 
-import fr.bastienbories.discorddrivesync.model.discord.DiscordChannel;
-import fr.bastienbories.discorddrivesync.model.drive.DriveFile;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
 import java.util.List;

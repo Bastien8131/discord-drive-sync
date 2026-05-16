@@ -1,4 +1,4 @@
-package fr.bastienbories.discorddrivesync.model.drive;
+package fr.bastienbories.discorddrivesync.drive.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

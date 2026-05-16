@@ -1,7 +1,7 @@
-package fr.bastienbories.discorddrivesync.model.discord;
+package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.model.dds.Message;
-import fr.bastienbories.discorddrivesync.model.drive.DriveFile;
+import fr.bastienbories.discorddrivesync.core.model.Message;
+import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
 @Entity

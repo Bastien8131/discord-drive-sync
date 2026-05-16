@@ -1,6 +1,6 @@
-package fr.bastienbories.discorddrivesync.model.discord;
+package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.model.dds.Label;
+import fr.bastienbories.discorddrivesync.core.model.Label;
 import jakarta.persistence.*;
 
 @Entity

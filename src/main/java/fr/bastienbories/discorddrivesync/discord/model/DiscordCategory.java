@@ -1,4 +1,4 @@
-package fr.bastienbories.discorddrivesync.model.discord;
+package fr.bastienbories.discorddrivesync.discord.model;
 
 import jakarta.persistence.*;
 
