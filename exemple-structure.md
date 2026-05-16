@@ -1,0 +1,4 @@
+- model/       ← entités + DTOs
+- repository/  ← interfaces JpaRepository<...>
+- services/    ← logique Discord, Drive, sync
+- controller/  ← endpoints REST
