@@ -12,4 +12,11 @@ public class DiscordUser {
     private long idDiscordUser;
 
     private String name;
+
+    public DiscordUser() {}
+
+    public DiscordUser(long idDiscordUser, String name) {
+        this.idDiscordUser = idDiscordUser;
+        this.name = name;
+    }
 }
