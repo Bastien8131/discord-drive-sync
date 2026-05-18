@@ -18,7 +18,7 @@ public class Runner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        coreServices.syncUsers();
+//        coreServices.syncUsers();
 //        System.out.println(discordBotServices.test());
     }
 }

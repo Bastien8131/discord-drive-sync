@@ -1,6 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.core.model.Message;
+import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -11,7 +11,7 @@ public class DiscordComment extends DiscordMessage {
 
     @ManyToOne
     @JoinColumn(name = "idDiscordMessage")
-    private Message message;
+    private CoreMessage message;
 
     @ManyToOne
     @JoinColumn(name = "idFile")

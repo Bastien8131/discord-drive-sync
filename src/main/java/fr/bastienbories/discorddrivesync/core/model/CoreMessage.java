@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Message")
-public class Message extends DiscordMessage {
+public class CoreMessage extends DiscordMessage {
 
     @OneToOne
     @JoinColumn(name = "idFile")
@@ -20,6 +20,6 @@ public class Message extends DiscordMessage {
             joinColumns = @JoinColumn(name = "idDiscordMessage"),
             inverseJoinColumns = @JoinColumn(name = "idLabel")
     )
-    private List<Label> labels;
+    private List<CoreLabel> labels;
 
 }

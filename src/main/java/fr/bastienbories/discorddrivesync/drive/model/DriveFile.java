@@ -1,6 +1,6 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
-import fr.bastienbories.discorddrivesync.core.model.Label;
+import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.*;
@@ -36,6 +36,6 @@ public class DriveFile {
             joinColumns = @JoinColumn(name = "idFile"),
             inverseJoinColumns = @JoinColumn(name = "idLabel")
     )
-    private List<Label> labels;
+    private List<CoreLabel> labels;
 
 }

@@ -5,11 +5,13 @@ import fr.bastienbories.discorddrivesync.discord.repository.DiscordUserRepositor
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class DiscordUserServices {
 
     private final DiscordUserRepository discordUserRepository;

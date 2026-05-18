@@ -1,7 +1,8 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.core.model.Label;
+import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import jakarta.persistence.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 
 @Entity
 @Table(name = "DiscordChannel")
@@ -13,14 +14,34 @@ public class DiscordChannel {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private DiscordEnum.Channel type;
+    private ChannelType type;
 
     @ManyToOne
     @JoinColumn(name = "idLabel")
-    private Label label;
+    private CoreLabel label;
 
     @ManyToOne
     @JoinColumn(name = "idDiscCategory")
     private DiscordCategory discordCategory;
 
+    public DiscordChannel() {}
+
+    public DiscordChannel(long idDiscordChannel, String name, ChannelType type, CoreLabel label, DiscordCategory discordCategory) {
+        this.idDiscordChannel = idDiscordChannel;
+        this.name = name;
+        this.type = type;
+        this.label = label;
+        this.discordCategory = discordCategory;
+    }
+
+    @Override
+    public String toString() {
+        return "DiscordChannel{" +
+                "idDiscordChannel=" + idDiscordChannel +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", label=" + label +
+                ", discordCategory=" + discordCategory +
+                '}';
+    }
 }
