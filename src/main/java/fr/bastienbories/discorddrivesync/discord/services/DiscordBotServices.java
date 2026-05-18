@@ -52,7 +52,7 @@ public class DiscordBotServices extends ListenerAdapter {
         super.onChannelCreate(event);
         switch (event.getChannelType()){
             case ChannelType.CATEGORY -> syncServices.createDiscordCategory((Category) event.getChannel());
-            case ChannelType.TEXT -> syncServices.createDiscordChannel((TextChannel) event.getChannel());
+            case ChannelType.TEXT -> System.out.println("yes");
             default -> System.out.println("no");
         }
 
