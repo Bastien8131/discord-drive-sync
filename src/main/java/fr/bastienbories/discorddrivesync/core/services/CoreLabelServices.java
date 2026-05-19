@@ -2,6 +2,7 @@ package fr.bastienbories.discorddrivesync.core.services;
 
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.repository.CoreLabelRepository;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,19 +10,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CoreLabelServices {
 
-    private final CoreLabelRepository labelRepository;
+    private final CoreLabelRepository coreLabelRepository;
 
     public CoreLabelServices(CoreLabelRepository labelRepository) {
-        this.labelRepository = labelRepository;
+        this.coreLabelRepository = labelRepository;
     }
 
     public boolean existByName(String name){
-        return labelRepository.findByName(name).isPresent();
+        return coreLabelRepository.findByName(name).isPresent();
     }
 
-    public CoreLabel getLabelByName(String name) {
-        return labelRepository.findByName(name)
-                .orElseGet(() -> labelRepository.save(new CoreLabel(name)));
+    public CoreLabel getOrCreateLabelByName(String name) {
+        return coreLabelRepository.findByName(name)
+                .orElseGet(() -> coreLabelRepository.save(new CoreLabel(name)));
     }
 
+    public CoreLabel createByDiscordChannel(DiscordChannel discordChannel) {
+        CoreLabel coreLabel = new CoreLabel(discordChannel);
+        return coreLabelRepository.save(coreLabel);
+    }
 }

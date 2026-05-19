@@ -40,6 +40,16 @@ public class CoreLabel {
         this.messages = new ArrayList<>();
     }
 
+    public CoreLabel(DiscordChannel discordChannel) {
+        this.name = discordChannel.getName();
+        this.discordChannels = new ArrayList<>();
+        this.categories = new ArrayList<>();
+        this.driveFiles = new ArrayList<>();
+        this.messages = new ArrayList<>();
+
+        this.discordChannels.add(discordChannel);
+    }
+
     @Override
     public String toString() {
         return "Label{" +
@@ -50,5 +60,9 @@ public class CoreLabel {
                 ", driveFiles=" + driveFiles +
                 ", messages=" + messages +
                 '}';
+    }
+
+    public void addDiscordChannel(DiscordChannel discordChannel){
+        this.discordChannels.add(discordChannel);
     }
 }

@@ -4,8 +4,6 @@ import fr.bastienbories.discorddrivesync.core.services.SyncServices;
 import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
@@ -51,9 +49,8 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onChannelCreate(@NonNull ChannelCreateEvent event) {
         super.onChannelCreate(event);
         switch (event.getChannelType()){
-            case ChannelType.CATEGORY -> syncServices.createDiscordCategory((Category) event.getChannel());
-            case ChannelType.TEXT -> System.out.println("yes");
-            default -> System.out.println("no");
+            case ChannelType.CATEGORY -> syncServices.createDiscordCategory(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.createDiscordChannel(event.getChannel().asTextChannel());
         }
 
     }
@@ -62,9 +59,8 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onChannelDelete(@NonNull ChannelDeleteEvent event) {
         super.onChannelDelete(event);
         switch (event.getChannelType()){
-            case ChannelType.CATEGORY -> syncServices.deleteDiscordCategory((Category) event.getChannel());
-            case ChannelType.TEXT -> System.out.println("yes");
-            default -> System.out.println("no");
+            case ChannelType.CATEGORY -> syncServices.deleteDiscordCategory(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.deleteDiscordChannel(event.getChannel().asTextChannel());
         }
     }
 

@@ -44,4 +44,12 @@ public class DiscordChannel {
                 ", discordCategory=" + discordCategory +
                 '}';
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setLabel(CoreLabel label) {
+        this.label = label;
+    }
 }
