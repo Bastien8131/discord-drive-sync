@@ -72,4 +72,9 @@ public class SyncServices {
         DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
         discordChannelServices.delete(discordChannel);
     }
+
+
+    public void updateUserTable() {
+        discordUserServices.updateTable();
+    }
 }

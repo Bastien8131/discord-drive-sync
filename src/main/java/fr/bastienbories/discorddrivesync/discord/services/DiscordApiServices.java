@@ -5,10 +5,12 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class DiscordApiServices {
 
     private final JDA jda;
@@ -19,11 +21,15 @@ public class DiscordApiServices {
 
     public List<Member> getMembers() {
         Guild guild = jda.getGuilds().getFirst();
-        return guild.loadMembers().get();
+        return guild.getMembers();
     }
 
     public Category createCategory(String name) {
         Guild guild = jda.getGuilds().getFirst();
         return guild.createCategory(name).complete();
+    }
+
+    public long getBotId() {
+        return jda.getSelfUser().getIdLong();
     }
 }

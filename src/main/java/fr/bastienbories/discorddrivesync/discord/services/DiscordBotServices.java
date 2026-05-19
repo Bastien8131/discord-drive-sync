@@ -4,6 +4,7 @@ import fr.bastienbories.discorddrivesync.core.services.SyncServices;
 import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
@@ -36,6 +37,12 @@ public class DiscordBotServices extends ListenerAdapter {
     }
 
     @Override
+    public void onGenericEvent(@NonNull GenericEvent event) {
+        super.onGenericEvent(event);
+        syncServices.updateUserTable();
+    }
+
+    @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         super.onMessageReceived(event);
     }
@@ -63,7 +70,4 @@ public class DiscordBotServices extends ListenerAdapter {
             case ChannelType.TEXT -> syncServices.deleteDiscordChannel(event.getChannel().asTextChannel());
         }
     }
-
-
-
 }

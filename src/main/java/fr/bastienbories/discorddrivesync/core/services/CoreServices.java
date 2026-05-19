@@ -17,9 +17,4 @@ public class CoreServices {
         this.discordBotServices = discordBotServices;
         this.discordApiServices = discordApiServices;
     }
-
-    public void syncUsers(){
-
-        discordUserServices.addUsers(discordApiServices.getMembers());
-    }
 }
