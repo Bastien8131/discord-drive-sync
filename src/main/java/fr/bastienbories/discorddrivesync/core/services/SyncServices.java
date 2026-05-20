@@ -54,7 +54,7 @@ public class SyncServices {
         discordCategoryServices.deleteById(channel.getIdLong());
     }
 
-    //---Label
+    //---Channel
 
     public void createChannelFromDiscord(TextChannel channel){
         CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
@@ -70,10 +70,12 @@ public class SyncServices {
         discordChannelServices.save(discordChannel);
     }
 
-
-    public void updateUserTable() {
-        discordUserServices.updateTable();
+    public void deleteChannelFromDiscord(TextChannel channel){
+        DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
+        discordChannelServices.delete(discordChannel);
     }
+
+    //---Message
 
     public void newMessageFormDiscord(Message message) {
         DiscordUser discordUser = discordUserServices.getByAuthor(message.getAuthor());
@@ -95,11 +97,11 @@ public class SyncServices {
 
 
 
-    
 
-    public void deleteChannelFromDiscord(TextChannel channel){
-        DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
-        discordChannelServices.delete(discordChannel);
+
+
+    public void updateUserTable() {
+        discordUserServices.updateTable();
     }
 
     public void createCategory(String name){
