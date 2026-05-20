@@ -41,28 +41,22 @@ public class SyncServices {
 
     //---Category
 
-    public void createDiscordCategory(Category channel){
+    public void createCategoryFromDiscord(Category channel){
         DiscordCategory discordCategory = new DiscordCategory(channel.getIdLong(), channel.getName());
         CoreCategory coreCategory = new CoreCategory(channel.getName(), discordCategory);
         discordCategoryServices.save(discordCategory);
         coreCategoryServices.save(coreCategory);
     }
 
-    public void deleteDiscordCategory(Category channel){
+    public void deleteCategoryFromDiscord(Category channel){
         CoreCategory coreCategory = coreCategoryServices.getByDiscordId(channel.getIdLong());
         coreCategoryServices.delete(coreCategory);
         discordCategoryServices.deleteById(channel.getIdLong());
     }
 
-    public void createCategory(String name){
-        DiscordCategory discordCategory = discordCategoryServices.getByName(name);
-        CoreCategory coreCategory = new CoreCategory(name, discordCategory);
-        coreCategoryServices.save(coreCategory);
-    }
-
     //---Label
 
-    public void createDiscordChannel(TextChannel channel){
+    public void createChannelFromDiscord(TextChannel channel){
         CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
         DiscordCategory discordCategory = discordCategoryServices.getById(channel.getParentCategoryIdLong());
 
@@ -74,11 +68,6 @@ public class SyncServices {
                 discordCategory
         );
         discordChannelServices.save(discordChannel);
-    }
-
-    public void deleteDiscordChannel(TextChannel channel){
-        DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
-        discordChannelServices.delete(discordChannel);
     }
 
 
@@ -100,5 +89,22 @@ public class SyncServices {
 
         coreMessage.addLabel(coreLabel);
         coreMessageServices.save(coreMessage);
+    }
+
+
+
+
+
+    
+
+    public void deleteChannelFromDiscord(TextChannel channel){
+        DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
+        discordChannelServices.delete(discordChannel);
+    }
+
+    public void createCategory(String name){
+        DiscordCategory discordCategory = discordCategoryServices.getByName(name);
+        CoreCategory coreCategory = new CoreCategory(name, discordCategory);
+        coreCategoryServices.save(coreCategory);
     }
 }

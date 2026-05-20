@@ -46,8 +46,8 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onChannelCreate(@NonNull ChannelCreateEvent event) {
         super.onChannelCreate(event);
         switch (event.getChannelType()){
-            case ChannelType.CATEGORY -> syncServices.createDiscordCategory(event.getChannel().asCategory());
-            case ChannelType.TEXT -> syncServices.createDiscordChannel(event.getChannel().asTextChannel());
+            case ChannelType.CATEGORY -> syncServices.createCategoryFromDiscord(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.createChannelFromDiscord(event.getChannel().asTextChannel());
         }
 
     }
@@ -56,8 +56,8 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onChannelDelete(@NonNull ChannelDeleteEvent event) {
         super.onChannelDelete(event);
         switch (event.getChannelType()){
-            case ChannelType.CATEGORY -> syncServices.deleteDiscordCategory(event.getChannel().asCategory());
-            case ChannelType.TEXT -> syncServices.deleteDiscordChannel(event.getChannel().asTextChannel());
+            case ChannelType.CATEGORY -> syncServices.deleteCategoryFromDiscord(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.deleteChannelFromDiscord(event.getChannel().asTextChannel());
         }
     }
 
