@@ -19,4 +19,15 @@ public class DiscordMessage {
     @ManyToOne
     @JoinColumn(name = "idDiscordChannel")
     private DiscordChannel discordChannel;
+
+    public DiscordMessage(long idDiscordMessage, String content, DiscordUser discordUser, DiscordChannel discordChannel) {
+        this.idDiscordMessage = idDiscordMessage;
+        this.content = content;
+        this.discordUser = discordUser;
+        this.discordChannel = discordChannel;
+    }
+
+    public DiscordMessage() {
+
+    }
 }

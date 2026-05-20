@@ -43,16 +43,6 @@ public class DiscordBotServices extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        super.onMessageReceived(event);
-    }
-
-    @Override
-    public void onMessageDelete(@NonNull MessageDeleteEvent event) {
-        super.onMessageDelete(event);
-    }
-
-    @Override
     public void onChannelCreate(@NonNull ChannelCreateEvent event) {
         super.onChannelCreate(event);
         switch (event.getChannelType()){
@@ -69,5 +59,16 @@ public class DiscordBotServices extends ListenerAdapter {
             case ChannelType.CATEGORY -> syncServices.deleteDiscordCategory(event.getChannel().asCategory());
             case ChannelType.TEXT -> syncServices.deleteDiscordChannel(event.getChannel().asTextChannel());
         }
+    }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        super.onMessageReceived(event);
+        syncServices.newMessageFormDiscord(event.getMessage());
+    }
+
+    @Override
+    public void onMessageDelete(@NonNull MessageDeleteEvent event) {
+        super.onMessageDelete(event);
     }
 }

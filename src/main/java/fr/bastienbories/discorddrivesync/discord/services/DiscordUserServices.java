@@ -3,6 +3,7 @@ package fr.bastienbories.discorddrivesync.discord.services;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordUserRepository;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,5 +50,9 @@ public class DiscordUserServices {
     public void updateTable() {
         List<Member> members = discordApiServices.getMembers();
         discordUserRepository.saveAll(membersToDiscordUsers(members));
+    }
+
+    public DiscordUser getByAuthor(User author) {
+        return discordUserRepository.getReferenceById(author.getIdLong());
     }
 }

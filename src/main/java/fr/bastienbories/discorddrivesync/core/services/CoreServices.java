@@ -4,8 +4,10 @@ import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordBotServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordUserServices;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class CoreServices {
 
     private final DiscordUserServices discordUserServices;

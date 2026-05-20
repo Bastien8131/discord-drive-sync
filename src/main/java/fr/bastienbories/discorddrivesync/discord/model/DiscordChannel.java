@@ -41,7 +41,7 @@ public class DiscordChannel {
                 ", name='" + name + '\'' +
                 ", type=" + type +
                 ", label=" + label +
-                ", discordCategory=" + discordCategory +
+                ", discordCategory=" + discordCategory.getId() +
                 '}';
     }
 
@@ -49,7 +49,11 @@ public class DiscordChannel {
         return name;
     }
 
-    public void setLabel(CoreLabel label) {
-        this.label = label;
+    public CoreLabel getLabel() {
+        return label;
+    }
+
+    public long getId() {
+        return idDiscordChannel;
     }
 }

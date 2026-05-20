@@ -55,14 +55,14 @@ public class CoreLabel {
         return "Label{" +
                 "idLabel=" + idLabel +
                 ", name='" + name + '\'' +
-                ", discordChannels=" + discordChannels +
-                ", categories=" + categories +
-                ", driveFiles=" + driveFiles +
-                ", messages=" + messages +
                 '}';
     }
 
     public void addDiscordChannel(DiscordChannel discordChannel){
         this.discordChannels.add(discordChannel);
+    }
+
+    public long getId() {
+        return idLabel;
     }
 }
