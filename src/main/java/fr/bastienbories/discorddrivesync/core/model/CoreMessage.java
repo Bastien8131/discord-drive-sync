@@ -2,6 +2,7 @@ package fr.bastienbories.discorddrivesync.core.model;
 
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
@@ -25,14 +26,14 @@ public class CoreMessage extends DiscordMessage {
     )
     private List<CoreLabel> labels;
 
-    public CoreMessage(long idDiscordMessage, String content, DiscordUser discordUser, DiscordChannel discordChannel) {
-        super(idDiscordMessage, content, discordUser, discordChannel);
+    public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
+        super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
         this.driveFile = null;
         this.labels = new ArrayList<>();
     }
 
-    public CoreMessage(long idDiscordMessage, String content, DiscordUser discordUser, DiscordChannel discordChannel, DriveFile driveFile) {
-        super(idDiscordMessage, content, discordUser, discordChannel);
+    public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel, DriveFile driveFile) {
+        super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
         this.driveFile = driveFile;
         this.labels = new ArrayList<>();
     }

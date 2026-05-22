@@ -63,6 +63,7 @@ public class DiscordBotServices extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
         super.onMessageReceived(event);
         syncServices.newMessageFormDiscord(event.getMessage());
     }
