@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -39,6 +41,17 @@ public class DiscordBotServices extends ListenerAdapter {
     @Override
     public void onGenericEvent(@NonNull GenericEvent event) {
         super.onGenericEvent(event);
+    }
+
+    @Override
+    public void onGuildMemberJoin(@NonNull GuildMemberJoinEvent event) {
+        if (event.getUser().isBot()) return;
+        syncServices.updateUserTable();
+    }
+
+    @Override
+    public void onGuildMemberRemove(@NonNull GuildMemberRemoveEvent event) {
+        if (event.getUser().isBot()) return;
         syncServices.updateUserTable();
     }
 
