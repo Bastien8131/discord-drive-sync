@@ -33,6 +33,10 @@ public class DiscordMessage {
 
     }
 
+    public long getIdDiscordMessage() {
+        return idDiscordMessage;
+    }
+
     public DiscordMessageData getDiscordMessageData() {
         return discordMessageData;
     }

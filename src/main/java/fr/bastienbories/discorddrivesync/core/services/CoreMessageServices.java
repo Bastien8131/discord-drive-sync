@@ -19,4 +19,8 @@ public class CoreMessageServices {
     public void save(CoreMessage coreMessage) {
         coreMessageRepository.save(coreMessage);
     }
+
+    public void deleteById(long id) {
+        coreMessageRepository.deleteById(id);
+    }
 }

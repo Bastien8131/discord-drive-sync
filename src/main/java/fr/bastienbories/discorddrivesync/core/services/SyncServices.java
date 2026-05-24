@@ -3,20 +3,17 @@ package fr.bastienbories.discorddrivesync.core.services;
 import fr.bastienbories.discorddrivesync.core.model.CoreCategory;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordCategory;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
+import fr.bastienbories.discorddrivesync.discord.model.*;
 import fr.bastienbories.discorddrivesync.discord.services.*;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,6 +22,7 @@ public class SyncServices {
     private final DiscordUserServices discordUserServices;
     private final DiscordCategoryServices discordCategoryServices;
     private final DiscordChannelServices discordChannelServices;
+    private final DiscordMessageServices discordMessageServices;
     private final DiscordMessageDataServices discordMessageDataServices;
 
     private final CoreCategoryServices coreCategoryServices;
@@ -32,10 +30,11 @@ public class SyncServices {
     private final CoreLabelServices coreLabelServices;
     private final DiscordApiServices discordApiServices;
 
-    public SyncServices(DiscordUserServices discordUserServices, DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, CoreCategoryServices coreCategoryServices, CoreMessageServices coreMessageServices, CoreLabelServices coreLabelServices, DiscordApiServices discordApiServices) {
+    public SyncServices(DiscordUserServices discordUserServices, DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, DiscordMessageServices discordMessageServices, DiscordMessageDataServices discordMessageDataServices, CoreCategoryServices coreCategoryServices, CoreMessageServices coreMessageServices, CoreLabelServices coreLabelServices, DiscordApiServices discordApiServices) {
         this.discordUserServices = discordUserServices;
         this.discordCategoryServices = discordCategoryServices;
         this.discordChannelServices = discordChannelServices;
+        this.discordMessageServices = discordMessageServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.coreCategoryServices = coreCategoryServices;
         this.coreMessageServices = coreMessageServices;
@@ -82,23 +81,41 @@ public class SyncServices {
     //---Message
 
     public void newMessageFormDiscord(Message message) {
+        discordApiServices.deleteMessage(message);
+        // check message is valid
+        if (discordMessageServices.checkIsNotValid(message)) {
+            return;
+        }
+
         DiscordUser discordUser = discordUserServices.getByAuthor(message.getAuthor());
         DiscordChannel discordChannelSource = discordChannelServices.getById(message.getChannelIdLong());
         CoreLabel coreLabel = discordChannelSource.getLabel();
 
-        List<DiscordChannel> discordChannelTargetsList = discordChannelServices.getAllByLabel(coreLabel);
+        //create data obj or fetch from db if alrady exsist
+        DiscordMessageData discordMessageData;
+        if (discordMessageDataServices.dataAlreadyExists(message)){
+            discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
+        } else {
+            discordMessageData = new DiscordMessageData(message.getContentDisplay());
+            discordMessageDataServices.save(discordMessageData);
+        }
 
-        DiscordMessageData discordMessageData = new DiscordMessageData(message.getContentDisplay());
-        discordMessageDataServices.save(discordMessageData);
+        List<DiscordChannel> discordChannelTargetsList = new ArrayList<>();
+        List<GuildChannel> mentionedChannels = message.getMentions().getChannels();
+        if (mentionedChannels.isEmpty()) {
+            discordChannelTargetsList.add(discordChannelServices.getById(message.getChannelIdLong()));
+        } else {
+            for (GuildChannel channel : mentionedChannels) {
+                discordChannelTargetsList.add(discordChannelServices.getById(channel.getIdLong()));
+            }
+        }
 
         List<Message> botMessages = discordApiServices.sendMultipleMessages(discordChannelTargetsList, message);
-
-        discordApiServices.deleteMessage(message);
 
         for (Message botMessage: botMessages){
             DiscordChannel discordChannelTarget = discordChannelTargetsList.stream().filter(
                     a -> a.getId() == botMessage.getChannelIdLong()).findFirst().orElseThrow(
-                            () -> new RuntimeException("Channel not found : " + botMessage.getChannelIdLong()));
+                    () -> new RuntimeException("Channel not found : " + botMessage.getChannelIdLong()));
             CoreMessage coreMessage = new CoreMessage(
                     botMessage.getIdLong(),
                     discordMessageData,
@@ -109,6 +126,23 @@ public class SyncServices {
             coreMessage.addLabel(coreLabel);
             coreMessageServices.save(coreMessage);
         }
+    }
+
+    public void deleteMessageFromDiscord(long messageIdLong) {
+        DiscordMessage discordMessageSource = discordMessageServices.getById(messageIdLong);
+        DiscordMessageData discordMessageDataSource = discordMessageSource.getDiscordMessageData();
+        List<DiscordMessage> discordMessageList = discordMessageServices.getAllByDataId(discordMessageDataSource);
+
+        for (DiscordMessage discordMessage: discordMessageList){
+            System.out.println(discordMessage.getIdDiscordMessage());
+//            discordMessageServices.delete(discordMessage);
+        }
+    }
+
+    //---Reply
+
+    public void replyMessageFormDiscord(Message message) {
+        discordApiServices.deleteMessage(message);
     }
 
 

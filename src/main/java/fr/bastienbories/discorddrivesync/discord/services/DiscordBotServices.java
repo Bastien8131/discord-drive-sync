@@ -3,6 +3,7 @@ package fr.bastienbories.discorddrivesync.discord.services;
 import fr.bastienbories.discorddrivesync.core.services.SyncServices;
 import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
@@ -13,8 +14,12 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class DiscordBotServices extends ListenerAdapter {
@@ -36,6 +41,7 @@ public class DiscordBotServices extends ListenerAdapter {
 
     @Override
     public void onReady(@NonNull ReadyEvent event) {
+        CompletableFuture.runAsync(syncServices::updateUserTable);
     }
 
     @Override
@@ -46,13 +52,13 @@ public class DiscordBotServices extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(@NonNull GuildMemberJoinEvent event) {
         if (event.getUser().isBot()) return;
-        syncServices.updateUserTable();
+        CompletableFuture.runAsync(syncServices::updateUserTable);
     }
 
     @Override
     public void onGuildMemberRemove(@NonNull GuildMemberRemoveEvent event) {
         if (event.getUser().isBot()) return;
-        syncServices.updateUserTable();
+        CompletableFuture.runAsync(syncServices::updateUserTable);
     }
 
     @Override
@@ -78,11 +84,20 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
         super.onMessageReceived(event);
-        syncServices.newMessageFormDiscord(event.getMessage());
+//        MessageType.INLINE_REPLY
+//        event.getMessage().getMentions().getChannels();
+        if (event.getMessage().getType() == MessageType.INLINE_REPLY){
+            syncServices.replyMessageFormDiscord(event.getMessage());
+        }else{
+            syncServices.newMessageFormDiscord(event.getMessage());
+        }
     }
 
     @Override
     public void onMessageDelete(@NonNull MessageDeleteEvent event) {
         super.onMessageDelete(event);
+        @NonNull MessageDeleteEvent test = event;
+        System.out.println(event.isFromGuild());
+//        syncServices.deleteMessageFromDiscord(event.getMessageIdLong());
     }
 }

@@ -28,8 +28,9 @@ public class DiscordApiServices {
     }
 
     public List<Member> getMembers() {
-//        Guild guild = jda.getGuilds().getFirst();
-        return guild.getMembers();
+        List<Member> members = guild.loadMembers().get();
+        System.out.println(members);
+        return members;
     }
 
     public Category createCategory(String name) {
@@ -48,7 +49,7 @@ public class DiscordApiServices {
         for (DiscordChannel discordChannel : channels) {
             TextChannel textChannel = jda.getTextChannelById(discordChannel.getId());
             if (textChannel != null) {
-                messages.add(textChannel.sendMessage(message.getContentDisplay()).complete());
+                messages.add(textChannel.sendMessage(message.getContentRaw().replaceAll("<#\\d+>\\s*", "").trim()).complete());
             }
         }
 

@@ -28,4 +28,8 @@ public class DiscordMessageData {
     public String getContent() {
         return content;
     }
+
+    public long getIdDiscordMessageData() {
+        return idDiscordMessageData;
+    }
 }

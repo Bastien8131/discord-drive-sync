@@ -42,6 +42,11 @@ public class CoreMessage extends DiscordMessage {
         super();
     }
 
+    @PreRemove
+    private void clearLabels() {
+        this.labels.clear();
+    }
+
     public void addLabel(CoreLabel label) {
         this.labels.add(label);
     }
