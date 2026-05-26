@@ -56,6 +56,7 @@ public class SyncServices {
 
     public void deleteCategoryFromDiscord(Category channel){
         CoreCategory coreCategory = coreCategoryServices.getByDiscordId(channel.getIdLong());
+        if (coreCategory == null) return;
         coreCategoryServices.delete(coreCategory);
         discordCategoryServices.deleteById(channel.getIdLong());
     }
@@ -78,6 +79,7 @@ public class SyncServices {
 
     public void deleteChannelFromDiscord(TextChannel channel){
         DiscordChannel discordChannel = discordChannelServices.getById(channel.getIdLong());
+        if (discordChannel == null) return;
         discordChannelServices.delete(discordChannel);
     }
 
