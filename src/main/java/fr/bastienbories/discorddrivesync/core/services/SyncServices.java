@@ -132,7 +132,7 @@ public class SyncServices {
     }
 
     public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
-        if (discordApiServices.isBotDeletion(event.getMessageIdLong())) return;
+        if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         DiscordMessage discordMessage = discordMessageServices.getById(event.getMessageIdLong());
         discordMessageServices.delete(discordMessage);

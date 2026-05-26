@@ -1,6 +1,5 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -8,7 +7,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +23,8 @@ public class DiscordApiServices {
     private final JDA jda;
     private final Guild guild;
 
+    private final Set<Long> botDeletedCategoryIds = ConcurrentHashMap.newKeySet();
+    private final Set<Long> botDeletedChannelIds = ConcurrentHashMap.newKeySet();
     private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
     public DiscordApiServices(JDA jda) {
@@ -66,8 +66,16 @@ public class DiscordApiServices {
         return jda.getSelfUser().getIdLong();
     }
 
-    public boolean isBotDeletion(long messageId) {
-        return botDeletedMessageIds.remove(messageId); // remove = consomme l'entrée
+    public boolean thisMessageIsDeleteByBot(long messageId) {
+        return botDeletedMessageIds.remove(messageId);
+    }
+
+    public boolean thisChannelIsDeleteByBot(long channelId) {
+        return  botDeletedChannelIds.remove(channelId);
+    }
+
+    public boolean thisCategoryIsDeleteByBot(long categoryId) {
+        return  botDeletedCategoryIds.remove(categoryId);
     }
 
     public void deleteMessage(Message message) {
