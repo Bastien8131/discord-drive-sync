@@ -86,8 +86,10 @@ public class SyncServices {
     //---Message
 
     public void newMessageFormDiscord(Message message) {
+        // at the end, bot replace user message, but with the same content
         discordApiServices.deleteMessage(message);
-        // check message is valid
+
+        //check message is valid
         if (discordMessageServices.checkIsNotValid(message)) {
             return;
         }
@@ -105,6 +107,8 @@ public class SyncServices {
             discordMessageDataServices.save(discordMessageData);
         }
 
+        //get the list of channel mentioned in the message
+        //if not mention, bot take the channel source of message send
         List<DiscordChannel> discordChannelTargetsList = new ArrayList<>();
         List<GuildChannel> mentionedChannels = message.getMentions().getChannels();
         if (mentionedChannels.isEmpty()) {
@@ -115,8 +119,11 @@ public class SyncServices {
             }
         }
 
+        //bot send message in all mentioned channels and return them
         List<Message> botMessages = discordApiServices.sendMultipleMessages(discordChannelTargetsList, message);
 
+        //save in the bd message send by bot, but this messages are assign to the user wha ase send the source message
+        //in finally, in the bd, are save only bot message
         for (Message botMessage: botMessages){
             DiscordChannel discordChannelTarget = discordChannelTargetsList.stream().filter(
                     a -> a.getId() == botMessage.getChannelIdLong()).findFirst().orElseThrow(
@@ -134,6 +141,8 @@ public class SyncServices {
     }
 
     public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
+        // returns whether the bot deleted the message
+        // function get only event from users<
         if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         DiscordMessage discordMessage = discordMessageServices.getById(event.getMessageIdLong());
