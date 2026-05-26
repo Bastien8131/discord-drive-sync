@@ -96,8 +96,6 @@ public class DiscordBotServices extends ListenerAdapter {
     @Override
     public void onMessageDelete(@NonNull MessageDeleteEvent event) {
         super.onMessageDelete(event);
-        @NonNull MessageDeleteEvent test = event;
-        System.out.println(event.isFromGuild());
-//        syncServices.deleteMessageFromDiscord(event.getMessageIdLong());
+        syncServices.deleteMessageFromDiscord(event);
     }
 }

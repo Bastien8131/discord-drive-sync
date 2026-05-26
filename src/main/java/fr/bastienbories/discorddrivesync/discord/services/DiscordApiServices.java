@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Transactional
@@ -21,6 +24,8 @@ public class DiscordApiServices {
 
     private final JDA jda;
     private final Guild guild;
+
+    private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
     public DiscordApiServices(JDA jda) {
         this.jda = jda;
@@ -61,7 +66,12 @@ public class DiscordApiServices {
         return jda.getSelfUser().getIdLong();
     }
 
+    public boolean isBotDeletion(long messageId) {
+        return botDeletedMessageIds.remove(messageId); // remove = consomme l'entrée
+    }
+
     public void deleteMessage(Message message) {
-        guild.getTextChannelById(message.getChannelId()).deleteMessageById(message.getId()).complete();
+        botDeletedMessageIds.add(message.getIdLong());
+        Objects.requireNonNull(guild.getTextChannelById(message.getChannelId())).deleteMessageById(message.getId()).complete();
     }
 }

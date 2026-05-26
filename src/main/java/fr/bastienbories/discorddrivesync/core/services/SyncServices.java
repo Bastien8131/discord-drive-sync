@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.List;
 @Transactional
 public class SyncServices {
 
+    private final DiscordApiServices discordApiServices;
+
     private final DiscordUserServices discordUserServices;
     private final DiscordCategoryServices discordCategoryServices;
     private final DiscordChannelServices discordChannelServices;
@@ -28,7 +32,6 @@ public class SyncServices {
     private final CoreCategoryServices coreCategoryServices;
     private final CoreMessageServices coreMessageServices;
     private final CoreLabelServices coreLabelServices;
-    private final DiscordApiServices discordApiServices;
 
     public SyncServices(DiscordUserServices discordUserServices, DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, DiscordMessageServices discordMessageServices, DiscordMessageDataServices discordMessageDataServices, CoreCategoryServices coreCategoryServices, CoreMessageServices coreMessageServices, CoreLabelServices coreLabelServices, DiscordApiServices discordApiServices) {
         this.discordUserServices = discordUserServices;
@@ -128,15 +131,11 @@ public class SyncServices {
         }
     }
 
-    public void deleteMessageFromDiscord(long messageIdLong) {
-        DiscordMessage discordMessageSource = discordMessageServices.getById(messageIdLong);
-        DiscordMessageData discordMessageDataSource = discordMessageSource.getDiscordMessageData();
-        List<DiscordMessage> discordMessageList = discordMessageServices.getAllByDataId(discordMessageDataSource);
+    public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
+        if (discordApiServices.isBotDeletion(event.getMessageIdLong())) return;
 
-        for (DiscordMessage discordMessage: discordMessageList){
-            System.out.println(discordMessage.getIdDiscordMessage());
-//            discordMessageServices.delete(discordMessage);
-        }
+        DiscordMessage discordMessage = discordMessageServices.getById(event.getMessageIdLong());
+        discordMessageServices.delete(discordMessage);
     }
 
     //---Reply
