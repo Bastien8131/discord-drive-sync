@@ -65,6 +65,7 @@ public class DiscordBotServices extends ListenerAdapter {
         switch (event.getChannelType()){
             case ChannelType.CATEGORY -> syncServices.createCategoryFromDiscord(event.getChannel().asCategory());
             case ChannelType.TEXT -> syncServices.createChannelFromDiscord(event.getChannel().asTextChannel());
+            case ChannelType.VOICE -> CompletableFuture.runAsync(syncServices::updateUserTable);
         }
 
     }
