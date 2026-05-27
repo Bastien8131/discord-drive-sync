@@ -33,11 +33,15 @@ public class DiscordMessage {
 
     }
 
-    public long getIdDiscordMessage() {
+    public long getId() {
         return idDiscordMessage;
     }
 
     public DiscordMessageData getDiscordMessageData() {
         return discordMessageData;
+    }
+
+    public DiscordChannel getDiscordChannel() {
+        return discordChannel;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -38,7 +39,7 @@ public class DiscordMessageServices {
         return false;
     }
 
-    public List<DiscordMessage> getAllByDataId(DiscordMessageData discordMessageData) {
+    public List<DiscordMessage> getListByData(DiscordMessageData discordMessageData) {
         return discordMessageRepository.getAllByDiscordMessageData(discordMessageData);
     }
 
@@ -48,6 +49,10 @@ public class DiscordMessageServices {
 
     public DiscordMessage getById(long messageIdLong) {
         return discordMessageRepository.getReferenceById(messageIdLong);
+    }
+
+    public Optional<DiscordMessage> findById(long messageIdLong) {
+        return discordMessageRepository.findById(messageIdLong);
     }
 
     public boolean dataExistsInSomeChannel(DiscordMessageData discordMessageData) {

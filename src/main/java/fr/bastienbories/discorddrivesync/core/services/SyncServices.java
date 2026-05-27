@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -26,23 +28,25 @@ public class SyncServices {
     private final DiscordUserServices discordUserServices;
     private final DiscordCategoryServices discordCategoryServices;
     private final DiscordChannelServices discordChannelServices;
-    private final DiscordMessageServices discordMessageServices;
     private final DiscordMessageDataServices discordMessageDataServices;
+    private final DiscordMessageServices discordMessageServices;
+    private final DiscordCommentServices discordCommentServices;
 
     private final CoreCategoryServices coreCategoryServices;
     private final CoreMessageServices coreMessageServices;
     private final CoreLabelServices coreLabelServices;
 
-    public SyncServices(DiscordUserServices discordUserServices, DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, DiscordMessageServices discordMessageServices, DiscordMessageDataServices discordMessageDataServices, CoreCategoryServices coreCategoryServices, CoreMessageServices coreMessageServices, CoreLabelServices coreLabelServices, DiscordApiServices discordApiServices) {
+    public SyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, DiscordCommentServices discordCommentServices, CoreCategoryServices coreCategoryServices, CoreMessageServices coreMessageServices, CoreLabelServices coreLabelServices) {
+        this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordCategoryServices = discordCategoryServices;
         this.discordChannelServices = discordChannelServices;
-        this.discordMessageServices = discordMessageServices;
         this.discordMessageDataServices = discordMessageDataServices;
+        this.discordMessageServices = discordMessageServices;
+        this.discordCommentServices = discordCommentServices;
         this.coreCategoryServices = coreCategoryServices;
         this.coreMessageServices = coreMessageServices;
         this.coreLabelServices = coreLabelServices;
-        this.discordApiServices = discordApiServices;
     }
 
     //---Category
@@ -149,10 +153,45 @@ public class SyncServices {
         discordMessageServices.delete(discordMessage);
     }
 
-    //---Reply
+    //---Comment
 
-    public void replyMessageFormDiscord(Message message) {
-        discordApiServices.deleteMessage(message);
+    public void commentMessageFormDiscord(Message comment) {
+        discordApiServices.deleteMessage(comment);
+        if (comment.getReferencedMessage() == null) return;
+
+        DiscordUser discordUser = discordUserServices.getByAuthor(comment.getAuthor());
+
+        DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw());
+        discordMessageDataServices.save(discordCommentData);
+
+        Optional<DiscordMessage> discordRefMessageOpt = discordMessageServices.findById(comment.getReferencedMessage().getIdLong());
+        if (discordRefMessageOpt.isEmpty()) {
+            comment.reply("Ce message n'est pas suivi par le bot.").queue();
+            return;
+        }
+        DiscordMessage discordRefMessage = discordRefMessageOpt.get();
+        DiscordMessageData discordRefMessageData = discordRefMessage.getDiscordMessageData();
+        List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(discordRefMessageData);
+
+        List<Message> botComments = discordApiServices.sendMultipleComment(discordMessageTargetsList, comment);
+
+        for (Message botComment: botComments){
+            DiscordChannel discordChannel = discordChannelServices.getById(botComment.getChannelIdLong());
+            DiscordMessage discordRefMessageByBot = discordMessageTargetsList.stream().filter(
+                    discordMessage -> discordMessage.getId() == Objects.requireNonNull(botComment.getReferencedMessage()).getIdLong())
+                    .findFirst().orElseThrow(() -> new RuntimeException("RefMessage not found"));
+
+            DiscordComment discordComment = new DiscordComment(
+                    botComment.getIdLong(),
+                    discordCommentData,
+                    discordUser,
+                    discordChannel,
+                    discordRefMessageByBot,
+                    null
+            );
+
+            discordCommentServices.save(discordComment);
+        }
     }
 
 

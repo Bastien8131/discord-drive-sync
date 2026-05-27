@@ -1,6 +1,7 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -32,6 +33,10 @@ public class DiscordApiServices {
         this.guild = jda.getGuilds().getFirst();
     }
 
+    private String removeChannelTag(String contentRaw){
+        return contentRaw.replaceAll("<#\\d+>\\s*", "").trim();
+    }
+
     public List<Member> getMembers() {
         List<Member> members = guild.loadMembers().get();
         System.out.println(members);
@@ -54,7 +59,23 @@ public class DiscordApiServices {
         for (DiscordChannel discordChannel : channels) {
             TextChannel textChannel = jda.getTextChannelById(discordChannel.getId());
             if (textChannel != null) {
-                messages.add(textChannel.sendMessage(message.getContentRaw().replaceAll("<#\\d+>\\s*", "").trim()).complete());
+                messages.add(textChannel.sendMessage(removeChannelTag(message.getContentRaw())).complete());
+            }
+        }
+
+        return messages;
+    }
+
+    public List<Message> sendMultipleComment(List<DiscordMessage> discordMessageTargetsList, Message comment) {
+        List<Message> messages = new ArrayList<>();
+
+        for (DiscordMessage discordMessage: discordMessageTargetsList){
+            TextChannel textChannel = jda.getTextChannelById(discordMessage.getDiscordChannel().getId());
+            if (textChannel != null){
+                Message message = textChannel.retrieveMessageById(discordMessage.getId()).complete();
+                if (message != null){
+                    messages.add(message.reply(removeChannelTag(comment.getContentRaw())).complete());
+                }
             }
         }
 

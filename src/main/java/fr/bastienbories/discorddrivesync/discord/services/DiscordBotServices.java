@@ -14,11 +14,9 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.utils.data.DataObject;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -87,7 +85,7 @@ public class DiscordBotServices extends ListenerAdapter {
 //        MessageType.INLINE_REPLY
 //        event.getMessage().getMentions().getChannels();
         if (event.getMessage().getType() == MessageType.INLINE_REPLY){
-            syncServices.replyMessageFormDiscord(event.getMessage());
+            syncServices.commentMessageFormDiscord(event.getMessage());
         }else{
             syncServices.newMessageFormDiscord(event.getMessage());
         }

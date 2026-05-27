@@ -1,6 +1,5 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -11,9 +10,19 @@ public class DiscordComment extends DiscordMessage {
 
     @ManyToOne
     @JoinColumn(name = "idDiscordMessage")
-    private CoreMessage message;
+    private DiscordMessage discordReferencedMessage;
 
     @ManyToOne
     @JoinColumn(name = "idFile")
     private DriveFile driveFile;
+
+    public DiscordComment() {
+
+    }
+
+    public DiscordComment(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel, DiscordMessage discordReferencedMessage, DriveFile driveFile) {
+        super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
+        this.discordReferencedMessage = discordReferencedMessage;
+        this.driveFile = driveFile;
+    }
 }
