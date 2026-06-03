@@ -1,0 +1,22 @@
+package fr.bastienbories.discorddrivesync.discord.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "DiscordUser")
+public class DiscordUser {
+
+    @Id
+    private long idDiscordUser;
+
+    private String name;
+
+    public DiscordUser() {}
+
+    public DiscordUser(long idDiscordUser, String name) {
+        this.idDiscordUser = idDiscordUser;
+        this.name = name;
+    }
+}

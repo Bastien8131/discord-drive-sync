@@ -1,0 +1,100 @@
+package fr.bastienbories.discorddrivesync.discord.services;
+
+import fr.bastienbories.discorddrivesync.core.services.SyncServices;
+import jakarta.annotation.PostConstruct;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jspecify.annotations.NonNull;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.CompletableFuture;
+
+@Service
+public class DiscordBotServices extends ListenerAdapter {
+
+    private final SyncServices syncServices;
+    private final JDA jda;
+
+    public DiscordBotServices(SyncServices syncServices, JDA jda) {
+        this.syncServices = syncServices;
+        this.jda = jda;
+    }
+
+    @PostConstruct
+    public void init() {
+        jda.addEventListener(this);
+    }
+
+    //Listener
+
+    @Override
+    public void onReady(@NonNull ReadyEvent event) {
+        CompletableFuture.runAsync(syncServices::updateUserTable);
+    }
+
+    @Override
+    public void onGenericEvent(@NonNull GenericEvent event) {
+        super.onGenericEvent(event);
+    }
+
+    @Override
+    public void onGuildMemberJoin(@NonNull GuildMemberJoinEvent event) {
+        if (event.getUser().isBot()) return;
+        CompletableFuture.runAsync(syncServices::updateUserTable);
+    }
+
+    @Override
+    public void onGuildMemberRemove(@NonNull GuildMemberRemoveEvent event) {
+        if (event.getUser().isBot()) return;
+        CompletableFuture.runAsync(syncServices::updateUserTable);
+    }
+
+    @Override
+    public void onChannelCreate(@NonNull ChannelCreateEvent event) {
+        super.onChannelCreate(event);
+        switch (event.getChannelType()){
+            case ChannelType.CATEGORY -> syncServices.createCategoryFromDiscord(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.createChannelFromDiscord(event.getChannel().asTextChannel());
+            case ChannelType.VOICE -> CompletableFuture.runAsync(syncServices::updateUserTable);
+        }
+
+    }
+
+    @Override
+    public void onChannelDelete(@NonNull ChannelDeleteEvent event) {
+        super.onChannelDelete(event);
+        switch (event.getChannelType()){
+            case ChannelType.CATEGORY -> syncServices.deleteCategoryFromDiscord(event.getChannel().asCategory());
+            case ChannelType.TEXT -> syncServices.deleteChannelFromDiscord(event.getChannel().asTextChannel());
+        }
+    }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
+        super.onMessageReceived(event);
+//        MessageType.INLINE_REPLY
+//        event.getMessage().getMentions().getChannels();
+        if (event.getMessage().getType() == MessageType.INLINE_REPLY){
+            syncServices.commentMessageFormDiscord(event.getMessage());
+        }else{
+            syncServices.newMessageFormDiscord(event.getMessage());
+        }
+    }
+
+    @Override
+    public void onMessageDelete(@NonNull MessageDeleteEvent event) {
+        super.onMessageDelete(event);
+        syncServices.deleteMessageFromDiscord(event);
+    }
+}
