@@ -8,13 +8,11 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.requests.Route;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -28,9 +26,12 @@ public class DiscordApiServices {
     private final Set<Long> botDeletedChannelIds = ConcurrentHashMap.newKeySet();
     private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
-    public DiscordApiServices(JDA jda) {
+    public DiscordApiServices(JDA jda) throws InterruptedException {
         this.jda = jda;
-        this.guild = jda.getGuilds().getFirst();
+        List<Guild> guilds = jda.awaitReady().getGuilds();
+        this.guild = guilds.stream().findFirst().orElseThrow(
+                () -> new IllegalStateException("This bot is not associated with any server")
+        );
     }
 
     private String removeChannelTag(String contentRaw){
@@ -44,7 +45,6 @@ public class DiscordApiServices {
     }
 
     public Category createCategory(String name) {
-//        Guild guild = jda.getGuilds().getFirst();
         return guild.createCategory(name).complete();
     }
 
