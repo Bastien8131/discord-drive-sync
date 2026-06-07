@@ -22,20 +22,6 @@ public class DiscordCategoryServices {
         return discordCategoryRepository.findByName(name).isPresent();
     }
 
-    public DiscordCategory getByName(String name) {
-        if (existByName(name)){
-            return discordCategoryRepository.getDiscordCategoryByName(name);
-        } else {
-            return create(name);
-        }
-    }
-
-    public DiscordCategory create(String name){
-        Category category = discordApiServices.createCategory(name);
-        DiscordCategory discordCategory = new DiscordCategory(category.getIdLong(), category.getName());
-        return discordCategoryRepository.save(discordCategory);
-    }
-
     public DiscordCategory getById(long id) {
         return discordCategoryRepository.getReferenceById(id);
     }

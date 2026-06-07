@@ -46,10 +46,6 @@ public class DiscordApiServices {
         return members;
     }
 
-    public Category createCategory(String name) {
-        return guild.createCategory(name).complete();
-    }
-
 //    public Message sendMessage(long idCategory, long idChannel, Message message){
 //        MessageCreateData messageCreateData = new MessageCreateData();
 //        return guild.getTextChannelById(idChannel).sendMessage(messageCreateData).complete();

@@ -207,10 +207,4 @@ public class SyncServices {
     public void updateUserTable() {
         discordUserServices.updateTable();
     }
-
-    public void createCategory(String name){
-        DiscordCategory discordCategory = discordCategoryServices.getByName(name);
-        CoreCategory coreCategory = new CoreCategory(name, discordCategory);
-        coreCategoryServices.save(coreCategory);
-    }
 }
