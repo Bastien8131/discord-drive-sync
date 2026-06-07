@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Transactional
@@ -124,24 +125,26 @@ public class SyncServices {
         }
 
         //bot send message in all mentioned channels and return them
-        List<Message> botMessages = discordApiServices.sendMultipleMessages(discordChannelTargetsList, message);
+        discordApiServices.sendMultipleMessages(discordChannelTargetsList, message).thenAccept(botMessages -> {
 
-        //save in the bd message send by bot, but this messages are assign to the user wha ase send the source message
-        //in finally, in the bd, are save only bot message
-        for (Message botMessage: botMessages){
-            DiscordChannel discordChannelTarget = discordChannelTargetsList.stream().filter(
-                    a -> a.getId() == botMessage.getChannelIdLong()).findFirst().orElseThrow(
-                    () -> new RuntimeException("Channel not found : " + botMessage.getChannelIdLong()));
-            CoreMessage coreMessage = new CoreMessage(
-                    botMessage.getIdLong(),
-                    discordMessageData,
-                    discordUser,
-                    discordChannelTarget
-            );
+            //save in the bd message send by bot, but this messages are assign to the user wha ase send the source message
+            //in finally, in the bd, are save only bot message
+            for (Message botMessage: botMessages){
+                DiscordChannel discordChannelTarget = discordChannelTargetsList.stream().filter(
+                        a -> a.getId() == botMessage.getChannelIdLong()).findFirst().orElseThrow(
+                        () -> new RuntimeException("Channel not found : " + botMessage.getChannelIdLong()));
+                CoreMessage coreMessage = new CoreMessage(
+                        botMessage.getIdLong(),
+                        discordMessageData,
+                        discordUser,
+                        discordChannelTarget
+                );
 
-            coreMessage.addLabel(coreLabel);
-            coreMessageServices.save(coreMessage);
-        }
+                coreMessage.addLabel(coreLabel);
+                coreMessageServices.save(coreMessage);
+            }
+
+        });
     }
 
     public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
@@ -173,25 +176,25 @@ public class SyncServices {
         DiscordMessageData discordRefMessageData = discordRefMessage.getDiscordMessageData();
         List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(discordRefMessageData);
 
-        List<Message> botComments = discordApiServices.sendMultipleComment(discordMessageTargetsList, comment);
+        discordApiServices.sendMultipleComment(discordMessageTargetsList, comment).thenAccept(botComments -> {
+            for (Message botComment: botComments){
+                DiscordChannel discordChannel = discordChannelServices.getById(botComment.getChannelIdLong());
+                DiscordMessage discordRefMessageByBot = discordMessageTargetsList.stream().filter(
+                                discordMessage -> discordMessage.getId() == Objects.requireNonNull(botComment.getReferencedMessage()).getIdLong())
+                        .findFirst().orElseThrow(() -> new RuntimeException("RefMessage not found"));
 
-        for (Message botComment: botComments){
-            DiscordChannel discordChannel = discordChannelServices.getById(botComment.getChannelIdLong());
-            DiscordMessage discordRefMessageByBot = discordMessageTargetsList.stream().filter(
-                    discordMessage -> discordMessage.getId() == Objects.requireNonNull(botComment.getReferencedMessage()).getIdLong())
-                    .findFirst().orElseThrow(() -> new RuntimeException("RefMessage not found"));
+                DiscordComment discordComment = new DiscordComment(
+                        botComment.getIdLong(),
+                        discordCommentData,
+                        discordUser,
+                        discordChannel,
+                        discordRefMessageByBot,
+                        null
+                );
 
-            DiscordComment discordComment = new DiscordComment(
-                    botComment.getIdLong(),
-                    discordCommentData,
-                    discordUser,
-                    discordChannel,
-                    discordRefMessageByBot,
-                    null
-            );
-
-            discordCommentServices.save(discordComment);
-        }
+                discordCommentServices.save(discordComment);
+            }
+        });
     }
 
 
@@ -203,11 +206,5 @@ public class SyncServices {
 
     public void updateUserTable() {
         discordUserServices.updateTable();
-    }
-
-    public void createCategory(String name){
-        DiscordCategory discordCategory = discordCategoryServices.getByName(name);
-        CoreCategory coreCategory = new CoreCategory(name, discordCategory);
-        coreCategoryServices.save(coreCategory);
     }
 }
