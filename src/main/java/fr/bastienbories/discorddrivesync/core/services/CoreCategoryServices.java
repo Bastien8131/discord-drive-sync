@@ -5,6 +5,8 @@ import fr.bastienbories.discorddrivesync.core.repository.CoreCategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class CoreCategoryServices {
@@ -15,8 +17,12 @@ public class CoreCategoryServices {
         this.coreCategoryRepository = coreCategoryRepository;
     }
 
-    public CoreCategory getByDiscordId(long id){
-        return coreCategoryRepository.getCoreCategoryByDiscordCategory_IdDiscCategory(id);
+    public Optional<CoreCategory> getById(long id){
+        return coreCategoryRepository.findById(id);
+    }
+
+    public Optional<CoreCategory> getByDiscordId(long id){
+        return coreCategoryRepository.findCoreCategoryByDiscordCategory_IdDiscCategory(id);
     }
 
     public void delete(CoreCategory coreCategory) {
