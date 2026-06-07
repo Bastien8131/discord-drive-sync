@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -53,33 +55,43 @@ public class DiscordApiServices {
 //        return guild.getTextChannelById(idChannel).sendMessage(messageCreateData).complete();
 //    }
 
-    public List<Message> sendMultipleMessages(List<DiscordChannel> channels, Message message) {
-        List<Message> messages = new ArrayList<>();
+    public CompletableFuture<List<Message>> sendMultipleMessages(List<DiscordChannel> channels, Message message) {
+        List<CompletableFuture<Message>> messages = new ArrayList<>();
 
         for (DiscordChannel discordChannel : channels) {
             TextChannel textChannel = jda.getTextChannelById(discordChannel.getId());
             if (textChannel != null) {
-                messages.add(textChannel.sendMessage(removeChannelTag(message.getContentRaw())).complete());
+                messages.add(textChannel.sendMessage(removeChannelTag(message.getContentRaw())).submit());
             }
         }
 
-        return messages;
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(messages.toArray(new CompletableFuture[messages.size()]));
+        return allFuturesResult.thenApply(v ->
+                messages.stream().
+                        map(CompletableFuture::join).
+                        collect(Collectors.<Message>toList())
+        );
     }
 
-    public List<Message> sendMultipleComment(List<DiscordMessage> discordMessageTargetsList, Message comment) {
-        List<Message> messages = new ArrayList<>();
+    public CompletableFuture<List<Message>> sendMultipleComment(List<DiscordMessage> discordMessageTargetsList, Message comment) {
+        List<CompletableFuture<Message>> messages = new ArrayList<>();
 
         for (DiscordMessage discordMessage: discordMessageTargetsList){
             TextChannel textChannel = jda.getTextChannelById(discordMessage.getDiscordChannel().getId());
             if (textChannel != null){
-                Message message = textChannel.retrieveMessageById(discordMessage.getId()).complete();
-                if (message != null){
-                    messages.add(message.reply(removeChannelTag(comment.getContentRaw())).complete());
-                }
+                CompletableFuture<Message> message = textChannel.retrieveMessageById(discordMessage.getId()).submit().thenCompose(
+                        msg -> msg.reply(removeChannelTag(comment.getContentRaw())).submit()
+                );
+                messages.add(message);
             }
         }
 
-        return messages;
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(messages.toArray(new CompletableFuture[messages.size()]));
+        return allFuturesResult.thenApply(v ->
+                messages.stream().
+                        map(CompletableFuture::join).
+                        collect(Collectors.<Message>toList())
+        );
     }
 
 
@@ -101,6 +113,6 @@ public class DiscordApiServices {
 
     public void deleteMessage(Message message) {
         botDeletedMessageIds.add(message.getIdLong());
-        Objects.requireNonNull(guild.getTextChannelById(message.getChannelId())).deleteMessageById(message.getId()).complete();
+        Objects.requireNonNull(guild.getTextChannelById(message.getChannelId())).deleteMessageById(message.getId()).queue();
     }
 }
