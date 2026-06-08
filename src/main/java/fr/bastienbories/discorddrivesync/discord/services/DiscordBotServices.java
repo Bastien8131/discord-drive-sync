@@ -37,14 +37,10 @@ public class DiscordBotServices extends ListenerAdapter {
     @PostConstruct
     public void init() {
         jda.addEventListener(this);
+        CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
     }
 
     //Listener
-
-    @Override
-    public void onReady(@NonNull ReadyEvent event) {
-        CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
-    }
 
     @Override
     public void onGenericEvent(@NonNull GenericEvent event) {
