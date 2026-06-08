@@ -15,19 +15,23 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 public class DiscordBotServices extends ListenerAdapter {
 
     private final SyncServices syncServices;
     private final JDA jda;
+    private final Executor discordTaskExecutor;
 
-    public DiscordBotServices(SyncServices syncServices, JDA jda) {
+    public DiscordBotServices(SyncServices syncServices, JDA jda, @Qualifier("discordTaskExecutor") Executor discordTaskExecutor) {
         this.syncServices = syncServices;
         this.jda = jda;
+        this.discordTaskExecutor = discordTaskExecutor;
     }
 
     @PostConstruct
@@ -39,7 +43,7 @@ public class DiscordBotServices extends ListenerAdapter {
 
     @Override
     public void onReady(@NonNull ReadyEvent event) {
-        CompletableFuture.runAsync(syncServices::updateUserTable);
+        CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
     }
 
     @Override
@@ -50,13 +54,13 @@ public class DiscordBotServices extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(@NonNull GuildMemberJoinEvent event) {
         if (event.getUser().isBot()) return;
-        CompletableFuture.runAsync(syncServices::updateUserTable);
+        CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
     }
 
     @Override
     public void onGuildMemberRemove(@NonNull GuildMemberRemoveEvent event) {
         if (event.getUser().isBot()) return;
-        CompletableFuture.runAsync(syncServices::updateUserTable);
+        CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class DiscordBotServices extends ListenerAdapter {
         switch (event.getChannelType()){
             case ChannelType.CATEGORY -> syncServices.createCategoryFromDiscord(event.getChannel().asCategory());
             case ChannelType.TEXT -> syncServices.createChannelFromDiscord(event.getChannel().asTextChannel());
-            case ChannelType.VOICE -> CompletableFuture.runAsync(syncServices::updateUserTable);
+            case ChannelType.VOICE -> CompletableFuture.runAsync(syncServices::updateUserTable, discordTaskExecutor);
         }
 
     }
