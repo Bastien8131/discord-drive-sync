@@ -17,7 +17,7 @@ public class CoreCategory {
     @Column(unique = true)
     private String name;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private DiscordCategory discordCategory;
 
     @ManyToMany

@@ -14,7 +14,7 @@ import java.util.List;
 @Table(name = "Message")
 public class CoreMessage extends DiscordMessage {
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idFile")
     private DriveFile driveFile;
 

@@ -18,15 +18,15 @@ public class DriveFile {
 
     private String path;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDriveFolder", nullable = false)
     private DriveFolder driveFolder;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser", nullable = false)
     private DiscordUser discordUser;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordMessage")
     private DiscordMessage discordMessage;
 

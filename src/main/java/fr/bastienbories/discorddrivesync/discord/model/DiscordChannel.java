@@ -16,11 +16,11 @@ public class DiscordChannel {
     @Enumerated(EnumType.STRING)
     private ChannelType type;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idLabel")
     private CoreLabel label;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscCategory")
     private DiscordCategory discordCategory;
 

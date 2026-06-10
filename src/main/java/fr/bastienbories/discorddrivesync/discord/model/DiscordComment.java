@@ -8,11 +8,11 @@ import jakarta.persistence.*;
 @PrimaryKeyJoinColumn(name = "idDiscordComment")
 public class DiscordComment extends DiscordMessage {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordMessage")
     private DiscordMessage discordReferencedMessage;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idFile")
     private DriveFile driveFile;
 

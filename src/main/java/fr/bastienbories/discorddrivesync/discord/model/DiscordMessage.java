@@ -10,15 +10,15 @@ public class DiscordMessage {
     @Id
     private long idDiscordMessage;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordMessageData")
     private DiscordMessageData discordMessageData;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser")
     private DiscordUser discordUser;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordChannel")
     private DiscordChannel discordChannel;
 
