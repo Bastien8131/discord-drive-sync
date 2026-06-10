@@ -25,6 +25,14 @@ public class DiscordMessageData {
         this.discordMessages = new ArrayList<>();
     }
 
+    @Override
+    public String toString() {
+        return "DiscordMessageData{" +
+                "idDiscordMessageData=" + idDiscordMessageData +
+                ", content='" + content + '\'' +
+                '}';
+    }
+
     public String getContent() {
         return content;
     }

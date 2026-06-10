@@ -31,7 +31,6 @@ public class DiscordCategory {
         return "DiscordCategory{" +
                 "idDiscCategory=" + idDiscCategory +
                 ", name='" + name + '\'' +
-                ", discordChannels=" + discordChannels +
                 '}';
     }
 

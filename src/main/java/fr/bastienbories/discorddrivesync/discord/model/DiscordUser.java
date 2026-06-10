@@ -19,4 +19,12 @@ public class DiscordUser {
         this.idDiscordUser = idDiscordUser;
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return "DiscordUser{" +
+                "idDiscordUser=" + idDiscordUser +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }

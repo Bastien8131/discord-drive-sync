@@ -33,6 +33,13 @@ public class DiscordMessage {
 
     }
 
+    @Override
+    public String toString() {
+        return "DiscordMessage{" +
+                "idDiscordMessage=" + idDiscordMessage +
+                '}';
+    }
+
     public long getId() {
         return idDiscordMessage;
     }

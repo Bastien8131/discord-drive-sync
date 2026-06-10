@@ -40,8 +40,6 @@ public class DiscordChannel {
                 "idDiscordChannel=" + idDiscordChannel +
                 ", name='" + name + '\'' +
                 ", type=" + type +
-                ", label=" + label +
-                ", discordCategory=" + discordCategory.getId() +
                 '}';
     }
 

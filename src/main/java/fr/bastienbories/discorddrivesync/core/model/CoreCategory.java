@@ -41,8 +41,6 @@ public class CoreCategory {
         return "Category{" +
                 "idCategory=" + idCategory +
                 ", name='" + name + '\'' +
-                ", discordCategory=" + discordCategory.toString() +
-                ", labels=" + labels.toString() +
                 '}';
     }
 
