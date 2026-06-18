@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.services;
 
+import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreCategory;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
@@ -11,6 +12,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class SyncServices {
+
+    private static final Logger log = LoggerFactory.getLogger(SyncServices.class);
 
     private final DiscordApiServices discordApiServices;
 
@@ -61,7 +66,10 @@ public class SyncServices {
     public void deleteCategoryFromDiscord(Category channel){
         long id = channel.getIdLong();
         Optional<CoreCategory> coreCategory = coreCategoryServices.getByDiscordId(id);
-        if (coreCategory.isEmpty()) { System.out.printf("coreCategory id: %d not exist in bd", id); return;}
+        if (coreCategory.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, CoreCategory.class, id);
+            return;
+        }
         coreCategoryServices.delete(coreCategory.get());
         discordCategoryServices.deleteById(channel.getIdLong());
     }
@@ -73,7 +81,10 @@ public class SyncServices {
         CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
         Optional<DiscordCategory> discordCategory = discordCategoryServices.getById(idCategory);
 
-        if (discordCategory.isEmpty()) {System.out.printf("discordCategory.id: %d, not exist in bd%n", idCategory); return;}
+        if (discordCategory.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordCategory.class, idCategory);
+            return;
+        }
 
         DiscordChannel discordChannel = new DiscordChannel(
                 channel.getIdLong(),
@@ -89,7 +100,10 @@ public class SyncServices {
         long id = channel.getIdLong();
         Optional<DiscordChannel> discordChannel = discordChannelServices.getById(id);
 
-        if (discordChannel.isEmpty()) {System.out.printf("discordChannel.id: %d, not exist in bd%n", id); return;}
+        if (discordChannel.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordChannel.class, id);
+            return;
+        }
 
         discordChannelServices.delete(discordChannel.get());
     }
@@ -107,11 +121,17 @@ public class SyncServices {
 
         long authorId = message.getAuthor().getIdLong();
         Optional<DiscordUser> discordUser = discordUserServices.getOrFetchById(authorId);
-        if (discordUser.isEmpty()) { System.out.printf("discordUser id: %d not exist in bd", authorId); return;}
+        if (discordUser.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId);
+            return;
+        }
 
         long channelId = message.getChannelIdLong();
         Optional<DiscordChannel> discordChannelSource = discordChannelServices.getById(channelId);
-        if (discordChannelSource.isEmpty()) { System.out.printf("discordChannel id: %d not exist in bd", channelId); return;}
+        if (discordChannelSource.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId);
+            return;
+        }
 
         CoreLabel coreLabel = discordChannelSource.get().getLabel();
 
@@ -132,14 +152,14 @@ public class SyncServices {
             long id = message.getChannelIdLong();
             discordChannelServices.getById(id).ifPresentOrElse(
                     discordChannelTargetsList::add,
-                    () -> System.out.printf("channel id %d not found%n", id)
+                    () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, id)
             );
         } else {
             for (GuildChannel channel : mentionedChannels) {
                 long id = channel.getIdLong();
                 discordChannelServices.getById(id).ifPresentOrElse(
                         discordChannelTargetsList::add,
-                        () -> System.out.printf("channel id %d not found%n", id)
+                        () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, id)
                 );
             }
         }
@@ -174,7 +194,10 @@ public class SyncServices {
 
         long messageId = event.getMessageIdLong();
         Optional<DiscordMessage> discordMessage = discordMessageServices.getById(messageId);
-        if (discordMessage.isEmpty()) { System.out.printf("discordMessage id: %d not exist in bd", messageId); return;}
+        if (discordMessage.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId);
+            return;
+        }
         discordMessageServices.delete(discordMessage.get());
     }
 
@@ -185,15 +208,20 @@ public class SyncServices {
         if (comment.getReferencedMessage() == null) return;
 
         long authorId = comment.getAuthor().getIdLong();
+        long refMessageId = comment.getReferencedMessage().getIdLong();
+
         Optional<DiscordUser> discordUser = discordUserServices.getOrFetchById(authorId);
-        if (discordUser.isEmpty()) { System.out.printf("discordUser id: %d not exist in bd", authorId); return;}
+        if (discordUser.isEmpty()) {
+            LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId);
+            return;
+        }
 
         DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw());
         discordMessageDataServices.save(discordCommentData);
 
-        Optional<DiscordMessage> discordRefMessageOpt = discordMessageServices.getById(comment.getReferencedMessage().getIdLong());
+        Optional<DiscordMessage> discordRefMessageOpt = discordMessageServices.getById(refMessageId);
         if (discordRefMessageOpt.isEmpty()) {
-            comment.reply("Ce message n'est pas suivi par le bot.").queue();
+            LogMessages.notFoundInDatabase(log, DiscordMessage.class, refMessageId);
             return;
         }
         DiscordMessage discordRefMessage = discordRefMessageOpt.get();
@@ -205,7 +233,10 @@ public class SyncServices {
 
                 long channelId = botComment.getChannelIdLong();
                 Optional<DiscordChannel> discordChannel = discordChannelServices.getById(channelId);
-                if (discordChannel.isEmpty()) { System.out.printf("discordChannel id: %d not exist in bd", channelId); return;}
+                if (discordChannel.isEmpty()) {
+                    LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId);
+                    return;
+                }
 
                 DiscordMessage discordRefMessageByBot = discordMessageTargetsList.stream().filter(
                                 discordMessage -> discordMessage.getId() == Objects.requireNonNull(botComment.getReferencedMessage()).getIdLong())
