@@ -1,15 +1,11 @@
 package fr.bastienbories.discorddrivesync.core.exception;
 
-public class CategoryNotFoundException extends RuntimeException {
+import fr.bastienbories.discorddrivesync.common.ResourceNotFoundException;
+import fr.bastienbories.discorddrivesync.core.model.CoreCategory;
 
-    private final long id;
+public class CategoryNotFoundException extends ResourceNotFoundException {
 
     public CategoryNotFoundException(long id) {
-        super("Category " + id + " not found");
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
+        super(CoreCategory.class, id);
     }
 }
