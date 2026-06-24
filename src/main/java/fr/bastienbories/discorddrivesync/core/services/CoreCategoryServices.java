@@ -21,8 +21,12 @@ public class CoreCategoryServices {
         return coreCategoryRepository.findById(id);
     }
 
+    public Optional<CoreCategory> getByIdWithLabels(long id){
+        return coreCategoryRepository.findByIdWithLabels(id);
+    }
+
     public Optional<CoreCategory> getByDiscordId(long id){
-        return coreCategoryRepository.findCoreCategoryByDiscordCategory_IdDiscCategory(id);
+        return coreCategoryRepository.findCoreCategoryByDiscordCategory_Id(id);
     }
 
     public void delete(CoreCategory coreCategory) {

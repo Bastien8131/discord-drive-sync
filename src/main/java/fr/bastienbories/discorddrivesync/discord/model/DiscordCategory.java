@@ -10,7 +10,8 @@ import java.util.List;
 public class DiscordCategory {
 
     @Id
-    private long idDiscCategory;
+    @Column(name = "id_disc_category")
+    private long id;
 
     @Column(unique = true)
     private String name;
@@ -21,7 +22,7 @@ public class DiscordCategory {
     public DiscordCategory() {}
 
     public DiscordCategory(long idDiscCategory, String name) {
-        this.idDiscCategory = idDiscCategory;
+        this.id = idDiscCategory;
         this.name = name;
         this.discordChannels = new ArrayList<>();
     }
@@ -29,13 +30,13 @@ public class DiscordCategory {
     @Override
     public String toString() {
         return "DiscordCategory{" +
-                "idDiscCategory=" + idDiscCategory +
+                "idDiscCategory=" + id +
                 ", name='" + name + '\'' +
                 '}';
     }
 
-    public void setIdDiscCategory(long idDiscCategory) {
-        this.idDiscCategory = idDiscCategory;
+    public void setId(long idDiscCategory) {
+        this.id = idDiscCategory;
     }
 
     public void setName(String name) {
@@ -43,6 +44,6 @@ public class DiscordCategory {
     }
 
     public long getId() {
-        return idDiscCategory;
+        return id;
     }
 }

@@ -44,7 +44,19 @@ public class CoreCategory {
                 '}';
     }
 
-    public long getIdCategory() {
+    public long getId() {
         return idCategory;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public DiscordCategory getDiscordCategory() {
+        return discordCategory;
+    }
+
+    public List<CoreLabel> getLabels() {
+        return labels;
     }
 }

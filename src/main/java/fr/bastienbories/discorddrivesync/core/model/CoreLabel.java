@@ -65,4 +65,8 @@ public class CoreLabel {
     public long getId() {
         return idLabel;
     }
+
+    public String getName() {
+        return name;
+    }
 }
