@@ -3,18 +3,18 @@ package fr.bastienbories.discorddrivesync.discord.services;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordUserRepository;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class DiscordUserServices {
 
-    private final  DiscordApiServices discordApiServices;
+    private final DiscordApiServices discordApiServices;
     private final DiscordUserRepository discordUserRepository;
 
     public DiscordUserServices(DiscordApiServices discordApiServices, DiscordUserRepository discordUserRepository) {
@@ -52,7 +52,16 @@ public class DiscordUserServices {
         discordUserRepository.saveAll(membersToDiscordUsers(members));
     }
 
-    public DiscordUser getByAuthor(User author) {
-        return discordUserRepository.getReferenceById(author.getIdLong());
+    public Optional<DiscordUser> getById(long id){
+        return discordUserRepository.findById(id);
+    }
+
+    public Optional<DiscordUser> getOrFetchById(long id) {
+        Optional<DiscordUser> user = getById(id);
+        if (user.isEmpty()) {
+            updateTable();
+            return getById(id);
+        }
+        return user;
     }
 }

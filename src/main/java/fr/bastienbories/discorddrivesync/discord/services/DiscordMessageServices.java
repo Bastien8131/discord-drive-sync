@@ -47,11 +47,7 @@ public class DiscordMessageServices {
         discordMessageRepository.delete(discordMessage);
     }
 
-    public DiscordMessage getById(long messageIdLong) {
-        return discordMessageRepository.getReferenceById(messageIdLong);
-    }
-
-    public Optional<DiscordMessage> findById(long messageIdLong) {
+    public Optional<DiscordMessage> getById(long messageIdLong) {
         return discordMessageRepository.findById(messageIdLong);
     }
 

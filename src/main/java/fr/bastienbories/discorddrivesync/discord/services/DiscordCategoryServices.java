@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class DiscordCategoryServices {
@@ -22,8 +24,8 @@ public class DiscordCategoryServices {
         return discordCategoryRepository.findByName(name).isPresent();
     }
 
-    public DiscordCategory getById(long id) {
-        return discordCategoryRepository.getReferenceById(id);
+    public Optional<DiscordCategory> getById(long id) {
+        return discordCategoryRepository.findById(id);
     }
 
     public void deleteById(long idLong) {

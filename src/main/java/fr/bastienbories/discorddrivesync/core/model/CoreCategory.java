@@ -17,7 +17,7 @@ public class CoreCategory {
     @Column(unique = true)
     private String name;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private DiscordCategory discordCategory;
 
     @ManyToMany
@@ -41,12 +41,22 @@ public class CoreCategory {
         return "Category{" +
                 "idCategory=" + idCategory +
                 ", name='" + name + '\'' +
-                ", discordCategory=" + discordCategory.toString() +
-                ", labels=" + labels.toString() +
                 '}';
     }
 
-    public long getIdCategory() {
+    public long getId() {
         return idCategory;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public DiscordCategory getDiscordCategory() {
+        return discordCategory;
+    }
+
+    public List<CoreLabel> getLabels() {
+        return labels;
     }
 }

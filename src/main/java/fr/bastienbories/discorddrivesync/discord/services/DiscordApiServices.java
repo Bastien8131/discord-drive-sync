@@ -42,7 +42,6 @@ public class DiscordApiServices {
 
     public List<Member> getMembers() {
         List<Member> members = guild.loadMembers().get();
-        System.out.println(members);
         return members;
     }
 

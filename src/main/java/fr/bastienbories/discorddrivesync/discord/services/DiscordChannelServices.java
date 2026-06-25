@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -22,8 +23,8 @@ public class DiscordChannelServices {
         discordChannelRepository.save(discordChannel);
     }
 
-    public DiscordChannel getById(long idLong) {
-        return discordChannelRepository.getReferenceById(idLong);
+    public Optional<DiscordChannel> getById(long idLong) {
+        return discordChannelRepository.findById(idLong);
     }
 
     public void delete(DiscordChannel discordChannel) {
