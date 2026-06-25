@@ -14,7 +14,7 @@ import java.util.Optional;
 @Transactional
 public class DiscordUserServices {
 
-    private final  DiscordApiServices discordApiServices;
+    private final DiscordApiServices discordApiServices;
     private final DiscordUserRepository discordUserRepository;
 
     public DiscordUserServices(DiscordApiServices discordApiServices, DiscordUserRepository discordUserRepository) {
