@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Transactional
@@ -243,23 +242,21 @@ public class SyncServices {
                 long botRefMessageId = botRefMessage.getIdLong();
 
                 discordChannelServices.getById(botChannelId).ifPresentOrElse(
-                        discordChannel -> {
-                            discordMessageTargetsList.stream().filter(discordMessage -> discordMessage.getId() == botRefMessageId).findFirst().ifPresentOrElse(
-                                    discordMessage -> {
-                                        DiscordComment discordComment = new DiscordComment(
-                                                botComment.getIdLong(),
-                                                discordCommentData,
-                                                discordUser.get(),
-                                                discordChannel,
-                                                discordMessage,
-                                                null
-                                        );
+                        discordChannel -> discordMessageTargetsList.stream().filter(discordMessage -> discordMessage.getId() == botRefMessageId).findFirst().ifPresentOrElse(
+                                discordMessage -> {
+                                    DiscordComment discordComment = new DiscordComment(
+                                            botComment.getIdLong(),
+                                            discordCommentData,
+                                            discordUser.get(),
+                                            discordChannel,
+                                            discordMessage,
+                                            null
+                                    );
 
-                                        discordCommentServices.save(discordComment);
-                                    },
-                                    () -> LogMessages.notFoundInTheList(log, DiscordMessage.class, botRefMessageId, discordMessageTargetsList)
-                            );
-                        },
+                                    discordCommentServices.save(discordComment);
+                                },
+                                () -> LogMessages.notFoundInTheList(log, DiscordMessage.class, botRefMessageId, discordMessageTargetsList)
+                        ),
                         () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, botChannelId)
                 );
             }
