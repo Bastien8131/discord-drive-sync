@@ -4,6 +4,8 @@ import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "DiscordChannel")
 public class DiscordChannel {
@@ -41,6 +43,20 @@ public class DiscordChannel {
                 ", name='" + name + '\'' +
                 ", type=" + type +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DiscordChannel that = (DiscordChannel) o;
+        return idDiscordChannel == that.idDiscordChannel;
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 
     public String getName() {

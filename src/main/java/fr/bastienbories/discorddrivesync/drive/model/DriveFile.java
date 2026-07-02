@@ -38,4 +38,17 @@ public class DriveFile {
     )
     private List<CoreLabel> labels;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DriveFile driveFile = (DriveFile) o;
+        return idFile == driveFile.idFile;
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
