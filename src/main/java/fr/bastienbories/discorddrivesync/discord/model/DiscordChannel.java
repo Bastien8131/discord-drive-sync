@@ -59,15 +59,23 @@ public class DiscordChannel {
         return getClass().hashCode();
     }
 
+    public long getId() {
+        return idDiscordChannel;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public ChannelType getType() {
+        return type;
     }
 
     public CoreLabel getLabel() {
         return label;
     }
 
-    public long getId() {
-        return idDiscordChannel;
+    public DiscordCategory getDiscordCategory() {
+        return discordCategory;
     }
 }

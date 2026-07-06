@@ -33,13 +33,14 @@ public class ChannelSyncServices {
 
     public void createChannelFromDiscord(TextChannel channel){
         long idCategory = channel.getParentCategoryIdLong();
-        CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
         Optional<DiscordCategory> discordCategory = discordCategoryServices.getById(idCategory);
 
         if (discordCategory.isEmpty()) {
             LogMessages.notFoundInDatabase(log, DiscordCategory.class, idCategory);
             return;
         }
+
+        CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
 
         DiscordChannel discordChannel = new DiscordChannel(
                 channel.getIdLong(),
