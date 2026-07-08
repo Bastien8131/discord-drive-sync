@@ -58,6 +58,21 @@ public class CoreLabel {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (idLabel == 0) return false;
+
+        CoreLabel coreLabel = (CoreLabel) o;
+        return idLabel == coreLabel.idLabel;
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
     public void addDiscordChannel(DiscordChannel discordChannel){
         this.discordChannels.add(discordChannel);
     }

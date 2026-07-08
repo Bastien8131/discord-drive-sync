@@ -44,6 +44,21 @@ public class CoreCategory {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (idCategory == 0) return false;
+
+        CoreCategory that = (CoreCategory) o;
+        return idCategory == that.idCategory;
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
     public long getId() {
         return idCategory;
     }

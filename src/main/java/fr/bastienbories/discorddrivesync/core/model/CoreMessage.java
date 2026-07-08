@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Message")
@@ -40,6 +41,20 @@ public class CoreMessage extends DiscordMessage {
 
     public CoreMessage() {
         super();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CoreMessage that = (CoreMessage) o;
+        return getId() == that.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 
     @PreRemove
