@@ -35,14 +35,6 @@ public class DiscordCategory {
                 '}';
     }
 
-    public void setId(long idDiscCategory) {
-        this.id = idDiscCategory;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public long getId() {
         return id;
     }
