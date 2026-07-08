@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "DiscordMessage")
 @Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
+@DiscriminatorValue("DISCORD_MESSAGE")
 public class DiscordMessage {
 
     @Id

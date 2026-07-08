@@ -13,6 +13,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "Message")
+@DiscriminatorValue("CORE_MESSAGE")
 public class CoreMessage extends DiscordMessage {
 
     @OneToOne(fetch = FetchType.LAZY)
