@@ -73,10 +73,6 @@ public class CoreLabel {
         return getClass().hashCode();
     }
 
-    public void addDiscordChannel(DiscordChannel discordChannel){
-        this.discordChannels.add(discordChannel);
-    }
-
     public long getId() {
         return idLabel;
     }

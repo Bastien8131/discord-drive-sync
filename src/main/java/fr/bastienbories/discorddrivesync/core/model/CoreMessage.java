@@ -9,10 +9,10 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "Message")
+@DiscriminatorValue("CORE_MESSAGE")
 public class CoreMessage extends DiscordMessage {
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -55,11 +55,6 @@ public class CoreMessage extends DiscordMessage {
     @Override
     public int hashCode() {
         return getClass().hashCode();
-    }
-
-    @PreRemove
-    private void clearLabels() {
-        this.labels.clear();
     }
 
     public void addLabel(CoreLabel label) {

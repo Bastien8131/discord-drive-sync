@@ -33,34 +33,28 @@ public class ChannelSyncServices {
 
     public void createChannelFromDiscord(TextChannel channel){
         long idCategory = channel.getParentCategoryIdLong();
-        Optional<DiscordCategory> discordCategory = discordCategoryServices.getById(idCategory);
-
-        if (discordCategory.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordCategory.class, idCategory);
-            return;
-        }
-
-        CoreLabel label = coreLabelServices.getOrCreateLabelByName(channel.getName().toLowerCase());
-
-        DiscordChannel discordChannel = new DiscordChannel(
-                channel.getIdLong(),
-                channel.getName(),
-                channel.getType(),
-                label,
-                discordCategory.get()
+        String channelName = channel.getName();
+        discordCategoryServices.getById(idCategory).ifPresentOrElse(
+                discordCategory -> {
+                    CoreLabel label = coreLabelServices.getOrCreateLabelByName(channelName.toLowerCase());
+                    DiscordChannel discordChannel = new DiscordChannel(
+                            channel.getIdLong(),
+                            channelName,
+                            channel.getType(),
+                            label,
+                            discordCategory
+                    );
+                    discordChannelServices.save(discordChannel);
+                },
+                () -> LogMessages.notFoundInDatabase(log, DiscordCategory.class, idCategory)
         );
-        discordChannelServices.save(discordChannel);
     }
 
     public void deleteChannelFromDiscord(TextChannel channel){
         long id = channel.getIdLong();
-        Optional<DiscordChannel> discordChannel = discordChannelServices.getById(id);
-
-        if (discordChannel.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordChannel.class, id);
-            return;
-        }
-
-        discordChannelServices.delete(discordChannel.get());
+        discordChannelServices.getById(id).ifPresentOrElse(
+                discordChannelServices::delete,
+                () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, id)
+        );
     }
 }

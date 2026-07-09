@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "DiscordComment")
 @PrimaryKeyJoinColumn(name = "idDiscordComment")
+@DiscriminatorValue("DISCORD_COMMENT")
 public class DiscordComment extends DiscordMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)

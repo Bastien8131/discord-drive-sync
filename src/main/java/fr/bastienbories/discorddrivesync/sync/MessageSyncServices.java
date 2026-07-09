@@ -51,34 +51,10 @@ public class MessageSyncServices {
         discordApiServices.deleteMessage(message);
 
         //check message is valid
-        if (discordMessageServices.checkIsNotValid(message)) {
-            return;
-        }
+        if (discordMessageServices.checkIsNotValid(message)) { return; }
 
         long authorId = message.getAuthor().getIdLong();
-        Optional<DiscordUser> discordUser = discordUserServices.getOrFetchById(authorId);
-        if (discordUser.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId);
-            return;
-        }
-
         long channelId = message.getChannelIdLong();
-        Optional<DiscordChannel> discordChannelSource = discordChannelServices.getById(channelId);
-        if (discordChannelSource.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId);
-            return;
-        }
-
-        CoreLabel coreLabel = discordChannelSource.get().getLabel();
-
-        //create data obj or fetch from db if alrady exsist
-        DiscordMessageData discordMessageData;
-        if (discordMessageDataServices.dataAlreadyExists(message)){
-            discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
-        } else {
-            discordMessageData = new DiscordMessageData(message.getContentDisplay());
-            discordMessageDataServices.save(discordMessageData);
-        }
 
         //get the list of channel mentioned in the message
         //if not mention, bot take the channel source of message send
@@ -100,33 +76,46 @@ public class MessageSyncServices {
             }
         }
 
-        //bot send message in all mentioned channels and return them
-        discordApiServices.sendMultipleMessages(discordChannelTargetsList, message).thenAccept(botMessages -> {
+        discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
+            discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
-            for (Message botMessage : botMessages) {
-                long botMsgChannelId = botMessage.getChannelIdLong();
-                discordChannelTargetsList.stream().filter(
-                        discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
-                        discordChannel -> {
-                            CoreMessage coreMessage = new CoreMessage(
-                                    botMessage.getIdLong(),
-                                    discordMessageData,
-                                    discordUser.get(),
-                                    discordChannel
-                            );
-
-                            coreMessage.addLabel(coreLabel);
-                            coreMessageServices.save(coreMessage);
-                        },
-                        () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
-                );
-            }
-        }).exceptionally(
-                ex -> {
-                    LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
-                    return null;
+                //create data obj or fetch from db if alrady exsist
+                DiscordMessageData discordMessageData;
+                if (discordMessageDataServices.dataAlreadyExists(message)){
+                    discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
+                } else {
+                    discordMessageData = new DiscordMessageData(message.getContentDisplay());
+                    discordMessageDataServices.save(discordMessageData);
                 }
-        );
+
+                discordApiServices.sendMultipleMessages(discordChannelTargetsList, message).thenAccept(botMessages -> {
+
+                    for (Message botMessage : botMessages) {
+                        long botMsgChannelId = botMessage.getChannelIdLong();
+                        discordChannelTargetsList.stream().filter(
+                                discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
+                                discordChannel -> {
+                                    CoreMessage coreMessage = new CoreMessage(
+                                            botMessage.getIdLong(),
+                                            discordMessageData,
+                                            discordUser,
+                                            discordChannel
+                                    );
+
+                                    coreMessage.addLabel(discordChannelSource.getLabel());
+                                    coreMessageServices.save(coreMessage);
+                                },
+                                () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
+                        );
+                    }
+                }).exceptionally(
+                        ex -> {
+                            LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                            return null;
+                        }
+                );
+            }, () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId));
+        }, () -> LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId));
     }
 
     public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
@@ -135,11 +124,9 @@ public class MessageSyncServices {
         if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         long messageId = event.getMessageIdLong();
-        Optional<DiscordMessage> discordMessage = discordMessageServices.getById(messageId);
-        if (discordMessage.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId);
-            return;
-        }
-        discordMessageServices.delete(discordMessage.get());
+        discordMessageServices.getById(messageId).ifPresentOrElse(
+                discordMessageServices::delete,
+                () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId)
+        );
     }
 }

@@ -43,55 +43,48 @@ public class CommentSyncServices {
         long authorId = comment.getAuthor().getIdLong();
         long refMessageId = comment.getReferencedMessage().getIdLong();
 
-        Optional<DiscordUser> discordUser = discordUserServices.getOrFetchById(authorId);
-        if (discordUser.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId);
-            return;
-        }
-
-        DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw());
-        discordMessageDataServices.save(discordCommentData);
-
-        Optional<DiscordMessage> discordRefMessageOpt = discordMessageServices.getById(refMessageId);
-        if (discordRefMessageOpt.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, DiscordMessage.class, refMessageId);
-            return;
-        }
-        DiscordMessage discordRefMessage = discordRefMessageOpt.get();
-        DiscordMessageData discordRefMessageData = discordRefMessage.getDiscordMessageData();
-        List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(discordRefMessageData);
-
-        discordApiServices.sendMultipleComment(discordMessageTargetsList, comment).thenAccept(botComments -> {
-            for (Message botComment: botComments){
-
-                long botChannelId = botComment.getChannelIdLong();
-                Message botRefMessage = Objects.requireNonNull(botComment.getReferencedMessage());
-                long botRefMessageId = botRefMessage.getIdLong();
-
-                discordChannelServices.getById(botChannelId).ifPresentOrElse(
-                        discordChannel -> discordMessageTargetsList.stream().filter(discordMessage -> discordMessage.getId() == botRefMessageId).findFirst().ifPresentOrElse(
-                                discordMessage -> {
-                                    DiscordComment discordComment = new DiscordComment(
-                                            botComment.getIdLong(),
-                                            discordCommentData,
-                                            discordUser.get(),
-                                            discordChannel,
-                                            discordMessage,
-                                            null
-                                    );
-
-                                    discordCommentServices.save(discordComment);
-                                },
-                                () -> LogMessages.notFoundInTheList(log, DiscordMessage.class, botRefMessageId, discordMessageTargetsList)
-                        ),
-                        () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, botChannelId)
-                );
-            }
-        }).exceptionally(
-                ex -> {
-                    LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
-                    return null;
-                }
+        discordUserServices.getOrFetchById(authorId).ifPresentOrElse(
+                discordUser -> {
+                    DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw());
+                    discordMessageDataServices.save(discordCommentData);
+                    discordMessageServices.getById(refMessageId).ifPresentOrElse(
+                            discordRefMessage -> {
+                                DiscordMessageData discordRefMessageData = discordRefMessage.getDiscordMessageData();
+                                List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(discordRefMessageData);
+                                discordApiServices.sendMultipleComment(discordMessageTargetsList, comment).thenAccept(botComments -> {
+                                    for (Message botComment: botComments){
+                                        long botChannelId = botComment.getChannelIdLong();
+                                        Message botRefMessage = Objects.requireNonNull(botComment.getReferencedMessage());
+                                        long botRefMessageId = botRefMessage.getIdLong();
+                                        discordChannelServices.getById(botChannelId).ifPresentOrElse(
+                                                discordChannel -> discordMessageTargetsList.stream().filter(discordMessage -> discordMessage.getId() == botRefMessageId).findFirst().ifPresentOrElse(
+                                                        discordMessage -> {
+                                                            DiscordComment discordComment = new DiscordComment(
+                                                                    botComment.getIdLong(),
+                                                                    discordCommentData,
+                                                                    discordUser,
+                                                                    discordChannel,
+                                                                    discordMessage,
+                                                                    null
+                                                            );
+                                                            discordCommentServices.save(discordComment);
+                                                        },
+                                                        () -> LogMessages.notFoundInTheList(log, DiscordMessage.class, botRefMessageId, discordMessageTargetsList)
+                                                ),
+                                                () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, botChannelId)
+                                        );
+                                    }
+                                }).exceptionally(
+                                        ex -> {
+                                            LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                                            return null;
+                                        }
+                                );
+                            },
+                            () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, refMessageId)
+                    );
+                },
+                () -> LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId)
         );
     }
 }

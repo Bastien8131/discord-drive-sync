@@ -36,12 +36,12 @@ public class CategorySyncServices {
 
     public void deleteCategoryFromDiscord(Category channel){
         long id = channel.getIdLong();
-        Optional<CoreCategory> coreCategory = coreCategoryServices.getByDiscordId(id);
-        if (coreCategory.isEmpty()) {
-            LogMessages.notFoundInDatabase(log, CoreCategory.class, id);
-            return;
-        }
-        coreCategoryServices.delete(coreCategory.get());
-        discordCategoryServices.deleteById(id);
+        coreCategoryServices.getByDiscordId(id).ifPresentOrElse(
+            coreCategory -> {
+                coreCategoryServices.delete(coreCategory);
+                discordCategoryServices.deleteById(id);
+            },
+            () -> LogMessages.notFoundInDatabase(log, CoreCategory.class, id)
+        );
     }
 }
