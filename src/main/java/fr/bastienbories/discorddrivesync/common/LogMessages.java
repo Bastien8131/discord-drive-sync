@@ -22,4 +22,8 @@ public final class LogMessages {
     public static void unexpectedErrorDuringAsyncProcessing(Logger log, Throwable throwable) {
         log.error("An unexpected error occurred during the asynchronous processing: ", throwable);
     }
+
+    public static void unexpectedError(Logger log, Throwable throwable) {
+        log.error("An unexpected error occurred: ", throwable);
+    }
 }

@@ -1,7 +1,6 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.core.services.CoreMessageServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -37,13 +35,16 @@ public class MessageSyncServices {
 
     private final CoreMessageServices coreMessageServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices) {
+    private final S3SyncServices s3SyncServices;
+
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageServices = discordMessageServices;
         this.coreMessageServices = coreMessageServices;
+        this.s3SyncServices = s3SyncServices;
     }
 
     public void newMessageFormDiscord(Message message) {
@@ -79,41 +80,48 @@ public class MessageSyncServices {
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
-                //create data obj or fetch from db if alrady exsist
-                DiscordMessageData discordMessageData;
-                if (discordMessageDataServices.dataAlreadyExists(message)){
-                    discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
-                } else {
-                    discordMessageData = new DiscordMessageData(message.getContentDisplay());
-                    discordMessageDataServices.save(discordMessageData);
-                }
+                s3SyncServices.getFilesFromMessage(message, discordUser).thenAccept(driveFiles -> {
 
-                discordApiServices.sendMultipleMessages(discordChannelTargetsList, message).thenAccept(botMessages -> {
-
-                    for (Message botMessage : botMessages) {
-                        long botMsgChannelId = botMessage.getChannelIdLong();
-                        discordChannelTargetsList.stream().filter(
-                                discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
-                                discordChannel -> {
-                                    CoreMessage coreMessage = new CoreMessage(
-                                            botMessage.getIdLong(),
-                                            discordMessageData,
-                                            discordUser,
-                                            discordChannel
-                                    );
-
-                                    coreMessage.addLabel(discordChannelSource.getLabel());
-                                    coreMessageServices.save(coreMessage);
-                                },
-                                () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
-                        );
+                    //create data obj or fetch from db if alrady exsist
+                    DiscordMessageData discordMessageData;
+                    if (discordMessageDataServices.dataAlreadyExists(message)){
+                        discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
+                    } else {
+                        discordMessageData = new DiscordMessageData(message.getContentDisplay());
+                        discordMessageDataServices.save(discordMessageData);
                     }
-                }).exceptionally(
-                        ex -> {
-                            LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
-                            return null;
+
+                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, message, driveFiles).thenAccept(botMessages -> {
+
+                        for (Message botMessage : botMessages) {
+                            long botMsgChannelId = botMessage.getChannelIdLong();
+                            discordChannelTargetsList.stream().filter(
+                                    discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
+                                    discordChannel -> {
+                                        CoreMessage coreMessage = new CoreMessage(
+                                                botMessage.getIdLong(),
+                                                discordMessageData,
+                                                discordUser,
+                                                discordChannel
+                                        );
+
+                                        coreMessage.setDriveFiles(driveFiles);
+                                        coreMessage.addLabel(discordChannelSource.getLabel());
+                                        coreMessageServices.save(coreMessage);
+                                    },
+                                    () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
+                            );
                         }
-                );
+                    }).exceptionally(
+                            ex -> {
+                                LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                                return null;
+                            }
+                    );
+                }).exceptionally(ex -> {
+                    LogMessages.unexpectedError(log, ex);
+                    return null;
+                });
             }, () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId));
         }, () -> LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId));
     }

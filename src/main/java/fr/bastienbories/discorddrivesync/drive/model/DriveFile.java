@@ -19,6 +19,8 @@ public class DriveFile {
 
     private String path;
 
+    private String shareToken;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser", nullable = false)
     private DiscordUser discordUser;
@@ -38,6 +40,7 @@ public class DriveFile {
         this.idFile = idFile;
         this.name = name;
         this.path = path;
+        this.shareToken = generateShareToken();
         this.discordUser = discordUser;
         this.coreMessages = new ArrayList<>();
         this.labels = new ArrayList<>();
@@ -45,6 +48,10 @@ public class DriveFile {
 
     public DriveFile() {
 
+    }
+
+    private String generateShareToken() {
+        return java.util.UUID.randomUUID().toString().replace("-", "");
     }
 
     @Override
@@ -59,5 +66,9 @@ public class DriveFile {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public String getShareToken() {
+        return shareToken;
     }
 }
