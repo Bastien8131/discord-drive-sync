@@ -29,7 +29,7 @@ public class DriveFileUrlServices {
             builder.append("http").append("://").append(url).append(":").append(port);
         }
 
-        builder.append("/files/").append(driveFile.getShareToken());
+        builder.append("/api/files/").append(driveFile.getShareToken());
 
         return builder.toString();
     }

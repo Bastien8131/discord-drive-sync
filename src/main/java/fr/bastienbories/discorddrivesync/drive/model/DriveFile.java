@@ -68,6 +68,18 @@ public class DriveFile {
         return getClass().hashCode();
     }
 
+    public long getId() {
+        return idFile;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
     public String getShareToken() {
         return shareToken;
     }

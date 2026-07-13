@@ -80,7 +80,7 @@ public class MessageSyncServices {
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
-                s3SyncServices.getFilesFromMessage(message, discordUser).thenAccept(driveFiles -> {
+                s3SyncServices.getFilesFromMessageAndUpload(message, discordUser).thenAccept(driveFiles -> {
 
                     //create data obj or fetch from db if alrady exsist
                     DiscordMessageData discordMessageData;

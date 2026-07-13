@@ -38,7 +38,7 @@ public class S3SyncServices {
         this.driveFileServices = driveFileServices;
     }
 
-    public CompletableFuture<List<DriveFile>> getFilesFromMessage(Message message, DiscordUser discordUser) {
+    public CompletableFuture<List<DriveFile>> getFilesFromMessageAndUpload(Message message, DiscordUser discordUser) {
         List<Attachment> attachments = message.getAttachments();
         List<CompletableFuture<Optional<DriveFile>>> driveFiles = new ArrayList<>();
 
