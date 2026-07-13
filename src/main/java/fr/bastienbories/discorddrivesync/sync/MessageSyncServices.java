@@ -48,9 +48,6 @@ public class MessageSyncServices {
     }
 
     public void newMessageFormDiscord(Message message) {
-        // at the end, bot replace user message, but with the same content
-        discordApiServices.deleteMessage(message);
-
         //check message is valid
         if (discordMessageServices.checkIsNotValid(message)) { return; }
 
@@ -81,6 +78,8 @@ public class MessageSyncServices {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
                 s3SyncServices.getFilesFromMessageAndUpload(message, discordUser).thenAccept(driveFiles -> {
+
+                    discordApiServices.deleteMessage(message);
 
                     //create data obj or fetch from db if alrady exsist
                     DiscordMessageData discordMessageData;

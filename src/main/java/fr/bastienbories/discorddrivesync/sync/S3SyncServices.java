@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,13 +46,19 @@ public class S3SyncServices {
         for (Attachment attachment: attachments){
             String contentType = Objects.toString(attachment.getContentType(), "unknown");
             String path = String.format("%s/%d/%s", contentType, attachment.getIdLong(), attachment.getFileName());
-            CompletableFuture<Optional<DriveFile>> driveFile = attachment.getProxy().download().thenCompose(inputStream -> s3AsyncClient.putObject(req -> req
-                            .bucket("discord-drive-sync")
-                            .key(path)
-                            .contentType(contentType)
-                            .build(),
-                    AsyncRequestBody.fromInputStream(inputStream, (long) attachment.getSize(), executorService)
-            )).thenApply(putObjectResponse -> Optional.of(new DriveFile(
+            CompletableFuture<Optional<DriveFile>> driveFile = attachment.getProxy().download().thenCompose(inputStream -> {
+                try (inputStream) {
+                    return s3AsyncClient.putObject(req -> req
+                                    .bucket("discord-drive-sync")
+                                    .key(path)
+                                    .contentType(contentType)
+                                    .build(),
+                            AsyncRequestBody.fromBytes(inputStream.readAllBytes())
+                    );
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }).thenApply(putObjectResponse -> Optional.of(new DriveFile(
                     attachment.getIdLong(),
                     attachment.getFileName(),
                     path,

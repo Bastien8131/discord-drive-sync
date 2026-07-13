@@ -48,9 +48,10 @@ public class DiscordApiServices {
         String messageContent = removeChannelTag(message.getContentRaw());
 
         contentBuild.append(messageContent);
-        contentBuild.append("\n\n");
+        contentBuild.append("\n");
 
         for (DriveFile driveFile: driveFiles){
+            contentBuild.append("\n");
             contentBuild.append(driveFileUrlServices.buildUrl(driveFile));
         }
 
