@@ -1,11 +1,13 @@
 package fr.bastienbories.discorddrivesync.sync;
 
+import com.google.common.io.Files;
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -39,13 +41,20 @@ public class S3SyncServices {
         this.driveFileServices = driveFileServices;
     }
 
+    private String getExtension(Attachment attachment){
+        return Objects.toString(
+                attachment.getFileExtension(),
+                Objects.toString(attachment.getFileName(), "unknown")
+        );
+    }
+
     public CompletableFuture<List<DriveFile>> getFilesFromMessageAndUpload(Message message, DiscordUser discordUser) {
         List<Attachment> attachments = message.getAttachments();
         List<CompletableFuture<Optional<DriveFile>>> driveFiles = new ArrayList<>();
 
         for (Attachment attachment: attachments){
             String contentType = Objects.toString(attachment.getContentType(), "unknown");
-            String path = String.format("%s/%d/%s", contentType, attachment.getIdLong(), attachment.getFileName());
+            String path = String.format("%s/%d", getExtension(attachment), attachment.getIdLong());
             CompletableFuture<Optional<DriveFile>> driveFile = attachment.getProxy().download().thenCompose(inputStream -> {
                 try (inputStream) {
                     return s3AsyncClient.putObject(req -> req
