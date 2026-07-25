@@ -6,6 +6,8 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class CoreMessageServices {
@@ -22,5 +24,13 @@ public class CoreMessageServices {
 
     public void deleteById(long id) {
         coreMessageRepository.deleteById(id);
+    }
+
+    public Optional<CoreMessage> getById(long id) {
+        return coreMessageRepository.findById(id);
+    }
+
+    public void delete(CoreMessage coreMessage) {
+        coreMessageRepository.delete(coreMessage);
     }
 }

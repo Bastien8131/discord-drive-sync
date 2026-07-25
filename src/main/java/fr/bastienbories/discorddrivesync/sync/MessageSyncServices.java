@@ -8,6 +8,8 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.services.*;
+import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
+import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
@@ -16,9 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -35,15 +39,17 @@ public class MessageSyncServices {
 
     private final CoreMessageServices coreMessageServices;
 
+    private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageServices = discordMessageServices;
         this.coreMessageServices = coreMessageServices;
+        this.driveFileServices = driveFileServices;
         this.s3SyncServices = s3SyncServices;
     }
 
@@ -131,9 +137,11 @@ public class MessageSyncServices {
         if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         long messageId = event.getMessageIdLong();
-        discordMessageServices.getById(messageId).ifPresentOrElse(
-                discordMessageServices::delete,
-                () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId)
-        );
+        coreMessageServices.getById(messageId).ifPresentOrElse(coreMessage -> {
+            driveFileServices.findByContainingOnlyThisCoreMessage(coreMessage).ifPresentOrElse(driveFiles -> {
+                coreMessageServices.delete(coreMessage);
+                s3SyncServices.deleteMultipleFiles(driveFiles);
+            },() -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreMessage.class, coreMessage.getId()));
+        }, () -> LogMessages.notFoundInDatabase(log, CoreMessage.class, messageId));
     }
 }

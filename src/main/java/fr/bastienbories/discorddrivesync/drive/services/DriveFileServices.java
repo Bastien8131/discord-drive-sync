@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.drive.services;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.repository.DriveFileRepository;
 import fr.bastienbories.discorddrivesync.sync.S3SyncServices;
@@ -34,6 +35,10 @@ public class DriveFileServices {
         this.driveFileRepository = driveFileRepository;
     }
 
+    public void deleteAll(List<DriveFile> driveFiles) {
+        driveFileRepository.deleteAll(driveFiles);
+    }
+
     public List<DriveFile> saveAll(List<DriveFile> files) {
         return driveFileRepository.saveAll(files);
     }
@@ -49,5 +54,17 @@ public class DriveFileServices {
                 .build(),
                 AsyncResponseTransformer.toBlockingInputStream()
         );
+    }
+
+    public Optional<List<DriveFile>> findByCoreMessage(CoreMessage coreMessage) {
+        return driveFileRepository.findByCoreMessagesContaining(coreMessage);
+    }
+
+    public Optional<List<DriveFile>> findByContainingOnlyThisCoreMessage(CoreMessage coreMessage){
+        return driveFileRepository.findByContainingOnlyThisCoreMessage(coreMessage);
+    }
+
+    public void delete(DriveFile driveFile) {
+        driveFileRepository.delete(driveFile);
     }
 }

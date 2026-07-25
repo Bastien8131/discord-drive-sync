@@ -1,19 +1,19 @@
 package fr.bastienbories.discorddrivesync.sync;
 
-import com.google.common.io.Files;
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,6 +87,38 @@ public class S3SyncServices {
         return allFuturesResult.thenApply(v -> {
             List<DriveFile> files = driveFiles.stream().map(CompletableFuture::join).flatMap(Optional::stream).collect(Collectors.<DriveFile>toList());
             return driveFileServices.saveAll(files);
+        });
+    }
+
+    public CompletableFuture<DeleteObjectResponse> delete(DriveFile driveFile) {
+        return s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getPath()));
+    }
+
+    public CompletableFuture<List<DeleteObjectResponse>> deleteMultipleFiles(List<DriveFile> driveFiles) {
+        List<CompletableFuture<DeleteObjectResponse>> deleteObjs = new ArrayList<>();
+
+        for (DriveFile driveFile : driveFiles) {
+            CompletableFuture<DeleteObjectResponse> deleteObject = s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getPath()).build())
+                    .thenApply(deleteObjectResponse -> {
+                try {
+                    driveFileServices.delete(driveFile);
+                } catch (OptimisticLockingFailureException ex) {
+                    LogMessages.unexpectedError(log, ex);
+                }
+                return deleteObjectResponse;
+            }).exceptionally(ex -> {
+                LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                return null;
+            });
+            deleteObjs.add(deleteObject);
+        }
+
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(
+                deleteObjs.toArray(new CompletableFuture[deleteObjs.size()])
+        );
+
+        return allFuturesResult.thenApply(v -> {
+            return deleteObjs.stream().map(CompletableFuture::join).collect(Collectors.<DeleteObjectResponse>toList());
         });
     }
 }
