@@ -1,5 +1,7 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
@@ -39,20 +41,26 @@ public class DiscordApiServices {
         this.driveFileUrlServices = driveFileUrlServices;
     }
 
-    private String removeChannelTag(String contentRaw){
-        return contentRaw.replaceAll("<#\\d+>\\s*", "").trim();
-    }
+//    private String removeChannelTag(String contentRaw){
+//        return contentRaw.replaceAll("<#\\d+>\\s*", "").trim();
+//    }
 
-    private String buildMessageContent(Message message, List<DriveFile> driveFiles){
+    private String buildMessageContent(String content, List<DriveFile> driveFiles, List<CoreLink> links){
         StringBuilder contentBuild = new StringBuilder();
-        String messageContent = removeChannelTag(message.getContentRaw());
+//        String messageContent = TextUtils.removeChannelTagFromContent(content);
 
-        contentBuild.append(messageContent);
-        contentBuild.append("\n");
+        contentBuild.append(content);
 
+        if (!driveFiles.isEmpty()){ contentBuild.append("\n"); }
         for (DriveFile driveFile: driveFiles){
             contentBuild.append("\n");
             contentBuild.append(driveFileUrlServices.buildUrl(driveFile));
+        }
+
+        if (!links.isEmpty()){ contentBuild.append("\n"); }
+        for (CoreLink coreLink: links){
+            contentBuild.append("\n");
+            contentBuild.append(coreLink.getUrl());
         }
 
         return contentBuild.toString();
@@ -68,13 +76,13 @@ public class DiscordApiServices {
 //        return guild.getTextChannelById(idChannel).sendMessage(messageCreateData).complete();
 //    }
 
-    public CompletableFuture<List<Message>> sendMultipleMessages(List<DiscordChannel> channels, Message message, List<DriveFile> driveFiles) {
+    public CompletableFuture<List<Message>> sendMultipleMessages(List<DiscordChannel> channels, String content, List<DriveFile> driveFiles, List<CoreLink> links) {
         List<CompletableFuture<Message>> messages = new ArrayList<>();
 
         for (DiscordChannel discordChannel : channels) {
             TextChannel textChannel = jda.getTextChannelById(discordChannel.getId());
             if (textChannel != null) {
-                messages.add(textChannel.sendMessage(buildMessageContent(message, driveFiles)).submit());
+                messages.add(textChannel.sendMessage(buildMessageContent(content, driveFiles, links)).submit());
             }
         }
 
@@ -93,7 +101,7 @@ public class DiscordApiServices {
             TextChannel textChannel = jda.getTextChannelById(discordMessage.getDiscordChannel().getId());
             if (textChannel != null){
                 CompletableFuture<Message> message = textChannel.retrieveMessageById(discordMessage.getId()).submit().thenCompose(
-                        msg -> msg.reply(removeChannelTag(comment.getContentRaw())).submit()
+                        msg -> msg.reply(TextUtils.removeChannelTagFromContent(comment.getContentRaw())).submit()
                 );
                 messages.add(message);
             }

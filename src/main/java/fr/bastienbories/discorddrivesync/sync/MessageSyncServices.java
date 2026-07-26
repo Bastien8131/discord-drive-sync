@@ -1,10 +1,12 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
+import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
+import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreMessageServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.services.*;
@@ -18,11 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -38,17 +38,19 @@ public class MessageSyncServices {
     private final DiscordMessageServices discordMessageServices;
 
     private final CoreMessageServices coreMessageServices;
+    private final CoreLinkServices coreLinkServices;
 
     private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, CoreLinkServices coreLinkServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageServices = discordMessageServices;
         this.coreMessageServices = coreMessageServices;
+        this.coreLinkServices = coreLinkServices;
         this.driveFileServices = driveFileServices;
         this.s3SyncServices = s3SyncServices;
     }
@@ -89,14 +91,20 @@ public class MessageSyncServices {
 
                     //create data obj or fetch from db if alrady exsist
                     DiscordMessageData discordMessageData;
-                    if (discordMessageDataServices.dataAlreadyExists(message)){
-                        discordMessageData = discordMessageDataServices.getByContent(message.getContentDisplay());
+                    String content = TextUtils.removeLinkFromContent(message.getContentRaw()).toString();
+                    content = TextUtils.removeNewLines(content).toString();
+                    content = TextUtils.removeChannelTagFromContent(content);
+
+                    if (discordMessageDataServices.dataAlreadyExists(content)){
+                        discordMessageData = discordMessageDataServices.findByContent(content);
                     } else {
-                        discordMessageData = new DiscordMessageData(message.getContentDisplay());
+                        discordMessageData = new DiscordMessageData(content);
                         discordMessageDataServices.save(discordMessageData);
                     }
 
-                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, message, driveFiles).thenAccept(botMessages -> {
+                    List<CoreLink> links = coreLinkServices.createLinks(message.getContentDisplay(), discordMessageData);
+
+                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, content, driveFiles, links).thenAccept(botMessages -> {
 
                         for (Message botMessage : botMessages) {
                             long botMsgChannelId = botMessage.getChannelIdLong();

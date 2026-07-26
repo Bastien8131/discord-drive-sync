@@ -2,7 +2,6 @@ package fr.bastienbories.discorddrivesync.discord.services;
 
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageDataRepository;
-import net.dv8tion.jda.api.entities.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +19,12 @@ public class DiscordMessageDataServices {
         discordMessageDataRepository.save(discordMessageData);
     }
 
-    public boolean dataAlreadyExists(Message message) {
+    public boolean dataAlreadyExists(String content) {
         // In the future check other column
-        return discordMessageDataRepository.existsByContent(message.getContentDisplay());
+        return discordMessageDataRepository.existsByContent(content);
     }
 
-    public DiscordMessageData getByContent(String contentDisplay) {
-        return discordMessageDataRepository.getDiscordMessageDataByContent(contentDisplay);
+    public DiscordMessageData findByContent(String contentDisplay) {
+        return discordMessageDataRepository.findByContent((contentDisplay));
     }
 }

@@ -33,3 +33,4 @@ build/
 .vscode/
 .env
 /pg_dump/
+/db_graph

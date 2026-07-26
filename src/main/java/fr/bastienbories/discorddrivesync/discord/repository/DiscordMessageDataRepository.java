@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DiscordMessageDataRepository extends JpaRepository<DiscordMessageData, Long> {
     boolean existsByContent(String contentDisplay);
 
-    DiscordMessageData getDiscordMessageDataByContent(String contentDisplay);
+    DiscordMessageData findByContent(String content);
 }

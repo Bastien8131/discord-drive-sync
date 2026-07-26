@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,11 +19,15 @@ public class DiscordMessageData {
     @OneToMany(mappedBy = "discordMessageData")
     private List<DiscordMessage> discordMessages;
 
+    @ManyToMany(mappedBy = "discordMessageDataList")
+    private List<CoreLink> links;
+
     public DiscordMessageData() {}
 
     public DiscordMessageData(String content) {
         this.content = content;
         this.discordMessages = new ArrayList<>();
+        this.links = new ArrayList<>();
     }
 
     @Override
@@ -36,4 +41,6 @@ public class DiscordMessageData {
     public long getIdDiscordMessageData() {
         return idDiscordMessageData;
     }
+
+    public void addLink(CoreLink coreLink) { links.add(coreLink); }
 }
