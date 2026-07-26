@@ -15,9 +15,13 @@ import java.util.List;
 @DiscriminatorValue("CORE_MESSAGE")
 public class CoreMessage extends DiscordMessage {
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idFile")
-    private DriveFile driveFile;
+    @ManyToMany
+    @JoinTable(
+            name = "DESCRIPTION",
+            joinColumns = @JoinColumn(name = "idDiscordMessage"),
+            inverseJoinColumns = @JoinColumn(name = "idFile")
+    )
+    private List<DriveFile> driveFiles;
 
     @ManyToMany
     @JoinTable(
@@ -29,13 +33,7 @@ public class CoreMessage extends DiscordMessage {
 
     public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
         super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
-        this.driveFile = null;
-        this.labels = new ArrayList<>();
-    }
-
-    public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel, DriveFile driveFile) {
-        super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
-        this.driveFile = driveFile;
+        this.driveFiles = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
@@ -57,7 +55,15 @@ public class CoreMessage extends DiscordMessage {
         return getClass().hashCode();
     }
 
+    public void setDriveFiles(List<DriveFile> driveFiles) {
+        this.driveFiles = driveFiles;
+    }
+
     public void addLabel(CoreLabel label) {
         this.labels.add(label);
+    }
+
+    public void addDriveFile(DriveFile driveFile) {
+        this.driveFiles.add(driveFile);
     }
 }

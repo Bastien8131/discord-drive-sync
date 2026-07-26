@@ -13,6 +13,10 @@ public final class LogMessages {
         log.warn("{} with id {} not found in database", entityClass.getSimpleName(), id);
     }
 
+    public static void listNotFoundInDatabase(Logger log, Class<?> listClass, Class<?> criteriaClass, Object criteriaValue) {
+        log.warn("List of {}, containing {} {}, not found in database", listClass.getSimpleName(), criteriaClass.getSimpleName(), criteriaValue);
+    }
+
     public static void notFoundInTheList(Logger log, Class<?> entityClass, long id, List<?> list) {
         log.warn("{} with id {} was not found in the list (size: {})", entityClass.getSimpleName(), id, list.size());
     }
@@ -21,5 +25,9 @@ public final class LogMessages {
 
     public static void unexpectedErrorDuringAsyncProcessing(Logger log, Throwable throwable) {
         log.error("An unexpected error occurred during the asynchronous processing: ", throwable);
+    }
+
+    public static void unexpectedError(Logger log, Throwable throwable) {
+        log.error("An unexpected error occurred: ", throwable);
     }
 }

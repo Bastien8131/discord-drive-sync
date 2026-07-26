@@ -1,10 +1,11 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
+import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,17 +19,14 @@ public class DriveFile {
 
     private String path;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDriveFolder", nullable = false)
-    private DriveFolder driveFolder;
+    private String shareToken;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser", nullable = false)
     private DiscordUser discordUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDiscordMessage")
-    private DiscordMessage discordMessage;
+    @ManyToMany(mappedBy = "driveFiles")
+    private List<CoreMessage> coreMessages;
 
     @ManyToMany
     @JoinTable(
@@ -37,6 +35,24 @@ public class DriveFile {
             inverseJoinColumns = @JoinColumn(name = "idLabel")
     )
     private List<CoreLabel> labels;
+
+    public DriveFile(long idFile, String name, String path, DiscordUser discordUser) {
+        this.idFile = idFile;
+        this.name = name;
+        this.path = path;
+        this.shareToken = generateShareToken();
+        this.discordUser = discordUser;
+        this.coreMessages = new ArrayList<>();
+        this.labels = new ArrayList<>();
+    }
+
+    public DriveFile() {
+
+    }
+
+    private String generateShareToken() {
+        return java.util.UUID.randomUUID().toString().replace("-", "");
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -50,5 +66,21 @@ public class DriveFile {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public long getId() {
+        return idFile;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getShareToken() {
+        return shareToken;
     }
 }
