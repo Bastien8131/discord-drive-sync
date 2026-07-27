@@ -28,7 +28,7 @@ public class CoreCategory {
     )
     private List<CoreLabel> labels;
 
-    public CoreCategory() {}
+    protected CoreCategory() {}
 
     public CoreCategory(String name, DiscordCategory discordCategory) {
         this.name = name;

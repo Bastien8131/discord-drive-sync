@@ -30,7 +30,7 @@ public class CoreLabel {
     @ManyToMany(mappedBy = "labels")
     private List<CoreMessage> messages;
 
-    public CoreLabel() {}
+    protected CoreLabel() {}
 
     public CoreLabel(String name) {
         this.name = name;

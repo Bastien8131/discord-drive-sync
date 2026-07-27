@@ -13,7 +13,7 @@ public class DiscordUser {
 
     private String name;
 
-    public DiscordUser() {}
+    protected DiscordUser() {}
 
     public DiscordUser(long idDiscordUser, String name) {
         this.idDiscordUser = idDiscordUser;

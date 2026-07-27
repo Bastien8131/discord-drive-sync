@@ -26,7 +26,7 @@ public class CoreLink {
     )
     private List<DiscordMessageData> discordMessageDataList;
 
-    public CoreLink() {}
+    protected CoreLink() {}
 
     public CoreLink(String url, DiscordMessageData discordMessageData) {
         this.url = url;

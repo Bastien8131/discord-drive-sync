@@ -31,14 +31,14 @@ public class CoreMessage extends DiscordMessage {
     )
     private List<CoreLabel> labels;
 
+    protected CoreMessage() {
+        super();
+    }
+
     public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
         super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
         this.driveFiles = new ArrayList<>();
         this.labels = new ArrayList<>();
-    }
-
-    public CoreMessage() {
-        super();
     }
 
     @Override

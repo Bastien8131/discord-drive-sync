@@ -24,15 +24,13 @@ public class DiscordMessage {
     @JoinColumn(name = "idDiscordChannel")
     private DiscordChannel discordChannel;
 
+    protected DiscordMessage() {}
+
     public DiscordMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
         this.idDiscordMessage = idDiscordMessage;
         this.discordMessageData = discordMessageData;
         this.discordUser = discordUser;
         this.discordChannel = discordChannel;
-    }
-
-    public DiscordMessage() {
-
     }
 
     @Override

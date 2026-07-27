@@ -19,7 +19,7 @@ public class DiscordCategory {
     @OneToMany(mappedBy = "discordCategory")
     private List<DiscordChannel> discordChannels;
 
-    public DiscordCategory() {}
+    protected DiscordCategory() {}
 
     public DiscordCategory(long idDiscCategory, String name) {
         this.id = idDiscCategory;

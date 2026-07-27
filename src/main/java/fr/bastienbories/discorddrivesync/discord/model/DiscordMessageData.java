@@ -22,7 +22,7 @@ public class DiscordMessageData {
     @ManyToMany(mappedBy = "discordMessageDataList")
     private List<CoreLink> links;
 
-    public DiscordMessageData() {}
+    protected DiscordMessageData() {}
 
     public DiscordMessageData(String content) {
         this.content = content;

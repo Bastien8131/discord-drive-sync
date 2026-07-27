@@ -26,7 +26,7 @@ public class DiscordChannel {
     @JoinColumn(name = "idDiscCategory")
     private DiscordCategory discordCategory;
 
-    public DiscordChannel() {}
+    protected DiscordChannel() {}
 
     public DiscordChannel(long idDiscordChannel, String name, ChannelType type, CoreLabel label, DiscordCategory discordCategory) {
         this.idDiscordChannel = idDiscordChannel;

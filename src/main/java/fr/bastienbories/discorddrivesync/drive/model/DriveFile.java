@@ -36,6 +36,8 @@ public class DriveFile {
     )
     private List<CoreLabel> labels;
 
+    protected DriveFile() {}
+
     public DriveFile(long idFile, String name, String path, DiscordUser discordUser) {
         this.idFile = idFile;
         this.name = name;
@@ -44,10 +46,6 @@ public class DriveFile {
         this.discordUser = discordUser;
         this.coreMessages = new ArrayList<>();
         this.labels = new ArrayList<>();
-    }
-
-    public DriveFile() {
-
     }
 
     private String generateShareToken() {
