@@ -31,8 +31,7 @@ public class CoreLink {
     public CoreLink(String url, DiscordMessageData discordMessageData) {
         this.url = url;
         this.discordMessageDataList = new ArrayList<>();
-        this.discordMessageDataList.add(discordMessageData);
-        discordMessageData.addLink(this);
+        addDiscordMessageData(discordMessageData);
     }
 
     @Override
@@ -55,5 +54,11 @@ public class CoreLink {
 
     public String getUrl() {
         return url;
+    }
+
+    public void addDiscordMessageData(DiscordMessageData discordMessageData){
+        discordMessageDataList.add(discordMessageData);
+        discordMessageData.addLink(this);
+
     }
 }

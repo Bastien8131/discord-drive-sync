@@ -102,7 +102,7 @@ public class MessageSyncServices {
                         discordMessageDataServices.save(discordMessageData);
                     }
 
-                    List<CoreLink> links = coreLinkServices.createLinks(message.getContentDisplay(), discordMessageData);
+                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
 
                     discordApiServices.sendMultipleMessages(discordChannelTargetsList, content, driveFiles, links).thenAccept(botMessages -> {
 
