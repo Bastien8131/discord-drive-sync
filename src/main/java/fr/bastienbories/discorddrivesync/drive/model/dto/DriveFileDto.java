@@ -1,3 +1,3 @@
 package fr.bastienbories.discorddrivesync.drive.model.dto;
 
-public record DriveFileDto(long id, String name, String path) {}
+public record DriveFileDto(String name, String path) {}

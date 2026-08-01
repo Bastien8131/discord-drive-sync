@@ -27,4 +27,12 @@ public class DiscordUser {
                 ", name='" + name + '\'' +
                 '}';
     }
+
+    public long getId() {
+        return idDiscordUser;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

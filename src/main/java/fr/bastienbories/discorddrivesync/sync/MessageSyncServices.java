@@ -155,7 +155,7 @@ public class MessageSyncServices {
             if (!discordMessageServices.dataExistsInSomeChannel(discordMessageData)) {
                 driveFileServices.findByDiscordMessageData(discordMessageData).ifPresentOrElse(
                         s3SyncServices::deleteMultipleFiles,
-                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, DiscordMessageData.class, discordMessageData.getIdDiscordMessageData())
+                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, DiscordMessageData.class, discordMessageData.getId())
                 );
             }
         }, () -> LogMessages.notFoundInDatabase(log, CoreMessage.class, messageId));

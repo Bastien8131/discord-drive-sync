@@ -27,7 +27,7 @@ public class CoreLabel {
     @ManyToMany(mappedBy = "labels")
     private List<DriveFile> driveFiles;
 
-    @ManyToMany(mappedBy = "labels")
+    @ManyToMany(mappedBy = "coreLabels")
     private List<CoreMessage> messages;
 
     protected CoreLabel() {}

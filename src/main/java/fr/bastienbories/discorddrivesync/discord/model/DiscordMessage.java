@@ -44,6 +44,8 @@ public class DiscordMessage {
         return idDiscordMessage;
     }
 
+    public DiscordUser getDiscordUser() {return discordUser;}
+
     public DiscordMessageData getDiscordMessageData() {
         return discordMessageData;
     }

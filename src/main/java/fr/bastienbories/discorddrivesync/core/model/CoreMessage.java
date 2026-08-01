@@ -20,7 +20,7 @@ public class CoreMessage extends DiscordMessage {
             joinColumns = @JoinColumn(name = "idDiscordMessage"),
             inverseJoinColumns = @JoinColumn(name = "idLabel")
     )
-    private List<CoreLabel> labels;
+    private List<CoreLabel> coreLabels;
 
     protected CoreMessage() {
         super();
@@ -28,7 +28,7 @@ public class CoreMessage extends DiscordMessage {
 
     public CoreMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
         super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
-        this.labels = new ArrayList<>();
+        this.coreLabels = new ArrayList<>();
     }
 
     @Override
@@ -45,7 +45,11 @@ public class CoreMessage extends DiscordMessage {
         return getClass().hashCode();
     }
 
+    public List<CoreLabel> getCoreLabels() {
+        return coreLabels;
+    }
+
     public void addLabel(CoreLabel label) {
-        this.labels.add(label);
+        this.coreLabels.add(label);
     }
 }

@@ -21,7 +21,7 @@ public class DiscordMessageData {
     private List<DiscordMessage> discordMessages;
 
     @ManyToMany(mappedBy = "discordMessageDataList")
-    private List<CoreLink> links;
+    private List<CoreLink> coreLinks;
 
     @ManyToMany
     @JoinTable(
@@ -36,7 +36,7 @@ public class DiscordMessageData {
     public DiscordMessageData(String content) {
         this.content = content;
         this.discordMessages = new ArrayList<>();
-        this.links = new ArrayList<>();
+        this.coreLinks = new ArrayList<>();
         this.driveFiles = new ArrayList<>();
     }
 
@@ -48,11 +48,21 @@ public class DiscordMessageData {
                 '}';
     }
 
-    public long getIdDiscordMessageData() {
+    public long getId() {
         return idDiscordMessageData;
     }
 
-    public void addLink(CoreLink coreLink) { links.add(coreLink); }
+    public String getContent() {return content;}
+
+    public List<CoreLink> getCoreLinks() {
+        return coreLinks;
+    }
+
+    public List<DriveFile> getDriveFiles() {
+        return driveFiles;
+    }
+
+    public void addLink(CoreLink coreLink) { coreLinks.add(coreLink); }
 
     public void addDriveFile(DriveFile driveFile) { driveFiles.add(driveFile); }
 }
