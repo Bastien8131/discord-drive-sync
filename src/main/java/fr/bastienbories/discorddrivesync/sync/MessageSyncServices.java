@@ -102,6 +102,10 @@ public class MessageSyncServices {
                         discordMessageDataServices.save(discordMessageData);
                     }
 
+                    for (DriveFile driveFile : driveFiles) {
+                        discordMessageData.addDriveFile(driveFile);
+                    }
+
                     List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
 
                     discordApiServices.sendMultipleMessages(discordChannelTargetsList, content, driveFiles, links).thenAccept(botMessages -> {
@@ -118,7 +122,6 @@ public class MessageSyncServices {
                                                 discordChannel
                                         );
 
-                                        coreMessage.setDriveFiles(driveFiles);
                                         coreMessage.addLabel(discordChannelSource.getLabel());
                                         coreMessageServices.save(coreMessage);
                                     },
@@ -146,10 +149,15 @@ public class MessageSyncServices {
 
         long messageId = event.getMessageIdLong();
         coreMessageServices.getById(messageId).ifPresentOrElse(coreMessage -> {
-            driveFileServices.findByContainingOnlyThisCoreMessage(coreMessage).ifPresentOrElse(driveFiles -> {
-                coreMessageServices.delete(coreMessage);
-                s3SyncServices.deleteMultipleFiles(driveFiles);
-            },() -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreMessage.class, coreMessage.getId()));
+            DiscordMessageData discordMessageData = coreMessage.getDiscordMessageData();
+            coreMessageServices.delete(coreMessage);
+
+            if (!discordMessageServices.dataExistsInSomeChannel(discordMessageData)) {
+                driveFileServices.findByDiscordMessageData(discordMessageData).ifPresentOrElse(
+                        s3SyncServices::deleteMultipleFiles,
+                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, DiscordMessageData.class, discordMessageData.getIdDiscordMessageData())
+                );
+            }
         }, () -> LogMessages.notFoundInDatabase(log, CoreMessage.class, messageId));
     }
 }

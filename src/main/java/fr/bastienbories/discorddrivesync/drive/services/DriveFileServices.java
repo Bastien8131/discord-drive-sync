@@ -1,6 +1,6 @@
 package fr.bastienbories.discorddrivesync.drive.services;
 
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.repository.DriveFileRepository;
 import fr.bastienbories.discorddrivesync.sync.S3SyncServices;
@@ -56,12 +56,8 @@ public class DriveFileServices {
         );
     }
 
-    public Optional<List<DriveFile>> findByCoreMessage(CoreMessage coreMessage) {
-        return driveFileRepository.findByCoreMessagesContaining(coreMessage);
-    }
-
-    public Optional<List<DriveFile>> findByContainingOnlyThisCoreMessage(CoreMessage coreMessage){
-        return driveFileRepository.findByContainingOnlyThisCoreMessage(coreMessage);
+    public Optional<List<DriveFile>> findByDiscordMessageData(DiscordMessageData discordMessageData) {
+        return driveFileRepository.findByDiscordMessageDataListContaining(discordMessageData);
     }
 
     public void delete(DriveFile driveFile) {
