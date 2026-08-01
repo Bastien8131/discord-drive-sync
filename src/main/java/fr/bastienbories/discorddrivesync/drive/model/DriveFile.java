@@ -81,4 +81,8 @@ public class DriveFile {
     public String getShareToken() {
         return shareToken;
     }
+
+    public void addDiscordMessageData(DiscordMessageData discordMessageData) {
+        discordMessageDataList.add(discordMessageData);
+    }
 }

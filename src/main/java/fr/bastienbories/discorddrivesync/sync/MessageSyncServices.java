@@ -1,7 +1,6 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
-import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
@@ -90,25 +89,11 @@ public class MessageSyncServices {
                     discordApiServices.deleteMessage(message);
 
                     //create data obj or fetch from db if alrady exsist
-                    DiscordMessageData discordMessageData;
-                    String content = TextUtils.removeLinkFromContent(message.getContentRaw()).toString();
-                    content = TextUtils.removeNewLines(content).toString();
-                    content = TextUtils.removeChannelTagFromContent(content);
-
-                    if (discordMessageDataServices.dataAlreadyExists(content)){
-                        discordMessageData = discordMessageDataServices.findByContent(content);
-                    } else {
-                        discordMessageData = new DiscordMessageData(content);
-                        discordMessageDataServices.save(discordMessageData);
-                    }
-
-                    for (DriveFile driveFile : driveFiles) {
-                        discordMessageData.addDriveFile(driveFile);
-                    }
+                    DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(message.getContentRaw(), driveFiles);
 
                     List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
 
-                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, content, driveFiles, links).thenAccept(botMessages -> {
+                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, discordMessageData.getContent(), driveFiles, links).thenAccept(botMessages -> {
 
                         for (Message botMessage : botMessages) {
                             long botMsgChannelId = botMessage.getChannelIdLong();

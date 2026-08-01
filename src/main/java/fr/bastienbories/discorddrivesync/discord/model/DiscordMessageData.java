@@ -65,4 +65,11 @@ public class DiscordMessageData {
     public void addLink(CoreLink coreLink) { coreLinks.add(coreLink); }
 
     public void addDriveFile(DriveFile driveFile) { driveFiles.add(driveFile); }
-}
+
+    public void addDriveFileList(List<DriveFile> driveFiles){
+        for (DriveFile driveFile : driveFiles) {
+            if (!getDriveFiles().contains(driveFile)){
+                addDriveFile(driveFile);
+            }
+        }
+    }}
