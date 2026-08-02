@@ -3,6 +3,7 @@ package fr.bastienbories.discorddrivesync.core.services;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.repository.CoreLabelRepository;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,5 +29,9 @@ public class CoreLabelServices {
     public CoreLabel createByDiscordChannel(DiscordChannel discordChannel) {
         CoreLabel coreLabel = new CoreLabel(discordChannel);
         return coreLabelRepository.save(coreLabel);
+    }
+
+    public void addDiscordMessageData(long labelId, DiscordMessageData discordMessageData) {
+        coreLabelRepository.findById(labelId).ifPresent(coreLabel -> coreLabel.addDiscordMessageData(discordMessageData));
     }
 }

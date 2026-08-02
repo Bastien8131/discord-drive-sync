@@ -2,6 +2,7 @@ package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
+import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
@@ -36,17 +37,19 @@ public class MessageSyncServices {
     private final DiscordMessageServices discordMessageServices;
 
     private final CoreLinkServices coreLinkServices;
+    private final CoreLabelServices coreLabelServices;
 
     private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, CoreLabelServices coreLabelServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageServices = discordMessageServices;
         this.coreLinkServices = coreLinkServices;
+        this.coreLabelServices = coreLabelServices;
         this.driveFileServices = driveFileServices;
         this.s3SyncServices = s3SyncServices;
     }
@@ -78,6 +81,11 @@ public class MessageSyncServices {
             }
         }
 
+        //resolve label ids now, while the session is still open (the DiscordChannel proxy will be detached once the async callbacks run)
+        List<Long> discordChannelTargetLabelIds = discordChannelTargetsList.stream()
+                .map(discordChannel -> discordChannel.getLabel().getId())
+                .toList();
+
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
@@ -89,8 +97,8 @@ public class MessageSyncServices {
                     DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(message.getContentRaw(), driveFiles);
 
                     //tag the content with the label of every channel it is broadcast to
-                    for (DiscordChannel discordChannel : discordChannelTargetsList) {
-                        discordChannel.getLabel().addDiscordMessageData(discordMessageData);
+                    for (Long labelId : discordChannelTargetLabelIds) {
+                        coreLabelServices.addDiscordMessageData(labelId, discordMessageData);
                     }
 
                     List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
