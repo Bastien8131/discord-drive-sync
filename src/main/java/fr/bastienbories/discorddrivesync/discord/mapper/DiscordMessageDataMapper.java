@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.mapper;
 
+import fr.bastienbories.discorddrivesync.core.mapper.CoreLabelMapper;
 import fr.bastienbories.discorddrivesync.core.mapper.CoreLinkMapper;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDataDto;
@@ -8,6 +9,7 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = {
         CoreLinkMapper.class,
+        CoreLabelMapper.class,
         DriveFileMapper.class
 })
 public interface DiscordMessageDataMapper {
