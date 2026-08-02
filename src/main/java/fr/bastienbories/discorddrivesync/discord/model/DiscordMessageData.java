@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
@@ -23,6 +24,9 @@ public class DiscordMessageData {
     @ManyToMany(mappedBy = "discordMessageDataList")
     private List<CoreLink> coreLinks;
 
+    @ManyToMany(mappedBy = "discordMessageDataList")
+    private List<CoreLabel> coreLabels;
+
     @ManyToMany
     @JoinTable(
             name = "DESCRIPTION",
@@ -37,6 +41,7 @@ public class DiscordMessageData {
         this.content = content;
         this.discordMessages = new ArrayList<>();
         this.coreLinks = new ArrayList<>();
+        this.coreLabels = new ArrayList<>();
         this.driveFiles = new ArrayList<>();
     }
 
@@ -58,11 +63,17 @@ public class DiscordMessageData {
         return coreLinks;
     }
 
+    public List<CoreLabel> getCoreLabels() {
+        return coreLabels;
+    }
+
     public List<DriveFile> getDriveFiles() {
         return driveFiles;
     }
 
     public void addLink(CoreLink coreLink) { coreLinks.add(coreLink); }
+
+    public void addLabel(CoreLabel coreLabel) { coreLabels.add(coreLabel); }
 
     public void addDriveFile(DriveFile driveFile) { driveFiles.add(driveFile); }
 

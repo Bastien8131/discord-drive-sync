@@ -1,6 +1,7 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -27,8 +28,13 @@ public class CoreLabel {
     @ManyToMany(mappedBy = "labels")
     private List<DriveFile> driveFiles;
 
-    @ManyToMany(mappedBy = "coreLabels")
-    private List<CoreMessage> messages;
+    @ManyToMany
+    @JoinTable(
+            name = "ASSOCIATE",
+            joinColumns = @JoinColumn(name = "idLabel"),
+            inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
+    )
+    private List<DiscordMessageData> discordMessageDataList;
 
     protected CoreLabel() {}
 
@@ -37,7 +43,7 @@ public class CoreLabel {
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
         this.driveFiles = new ArrayList<>();
-        this.messages = new ArrayList<>();
+        this.discordMessageDataList = new ArrayList<>();
     }
 
     public CoreLabel(DiscordChannel discordChannel) {
@@ -45,7 +51,7 @@ public class CoreLabel {
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
         this.driveFiles = new ArrayList<>();
-        this.messages = new ArrayList<>();
+        this.discordMessageDataList = new ArrayList<>();
 
         this.discordChannels.add(discordChannel);
     }
@@ -79,5 +85,12 @@ public class CoreLabel {
 
     public String getName() {
         return name;
+    }
+
+    public void addDiscordMessageData(DiscordMessageData discordMessageData) {
+        if (!discordMessageDataList.contains(discordMessageData)) {
+            discordMessageDataList.add(discordMessageData);
+            discordMessageData.addLabel(this);
+        }
     }
 }

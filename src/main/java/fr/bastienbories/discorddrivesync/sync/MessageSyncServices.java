@@ -2,10 +2,9 @@ package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
-import fr.bastienbories.discorddrivesync.core.services.CoreMessageServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.services.*;
@@ -36,19 +35,17 @@ public class MessageSyncServices {
     private final DiscordMessageDataServices discordMessageDataServices;
     private final DiscordMessageServices discordMessageServices;
 
-    private final CoreMessageServices coreMessageServices;
     private final CoreLinkServices coreLinkServices;
 
     private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, CoreLinkServices coreLinkServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageServices = discordMessageServices;
-        this.coreMessageServices = coreMessageServices;
         this.coreLinkServices = coreLinkServices;
         this.driveFileServices = driveFileServices;
         this.s3SyncServices = s3SyncServices;
@@ -91,6 +88,11 @@ public class MessageSyncServices {
                     //create data obj or fetch from db if alrady exsist
                     DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(message.getContentRaw(), driveFiles);
 
+                    //tag the content with the label of every channel it is broadcast to
+                    for (DiscordChannel discordChannel : discordChannelTargetsList) {
+                        discordChannel.getLabel().addDiscordMessageData(discordMessageData);
+                    }
+
                     List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
 
                     discordApiServices.sendMultipleMessages(discordChannelTargetsList, discordMessageData.getContent(), driveFiles, links).thenAccept(botMessages -> {
@@ -100,15 +102,14 @@ public class MessageSyncServices {
                             discordChannelTargetsList.stream().filter(
                                     discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
                                     discordChannel -> {
-                                        CoreMessage coreMessage = new CoreMessage(
+                                        DiscordMessage discordMessage = new DiscordMessage(
                                                 botMessage.getIdLong(),
                                                 discordMessageData,
                                                 discordUser,
                                                 discordChannel
                                         );
 
-                                        coreMessage.addLabel(discordChannelSource.getLabel());
-                                        coreMessageServices.save(coreMessage);
+                                        discordMessageServices.save(discordMessage);
                                     },
                                     () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
                             );
@@ -133,9 +134,9 @@ public class MessageSyncServices {
         if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         long messageId = event.getMessageIdLong();
-        coreMessageServices.getById(messageId).ifPresentOrElse(coreMessage -> {
-            DiscordMessageData discordMessageData = coreMessage.getDiscordMessageData();
-            coreMessageServices.delete(coreMessage);
+        discordMessageServices.getById(messageId).ifPresentOrElse(discordMessage -> {
+            DiscordMessageData discordMessageData = discordMessage.getDiscordMessageData();
+            discordMessageServices.delete(discordMessage);
 
             if (!discordMessageServices.dataExistsInSomeChannel(discordMessageData)) {
                 driveFileServices.findByDiscordMessageData(discordMessageData).ifPresentOrElse(
@@ -143,6 +144,6 @@ public class MessageSyncServices {
                         () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, DiscordMessageData.class, discordMessageData.getId())
                 );
             }
-        }, () -> LogMessages.notFoundInDatabase(log, CoreMessage.class, messageId));
+        }, () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId));
     }
 }
