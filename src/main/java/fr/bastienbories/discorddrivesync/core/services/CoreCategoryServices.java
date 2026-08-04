@@ -5,6 +5,7 @@ import fr.bastienbories.discorddrivesync.core.repository.CoreCategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,5 +36,13 @@ public class CoreCategoryServices {
 
     public void save(CoreCategory coreCategory) {
         coreCategoryRepository.save(coreCategory);
+    }
+
+    public List<CoreCategory> getAll() {
+        return coreCategoryRepository.findAll();
+    }
+
+    public List<CoreCategory> getAllWithLabels() {
+        return coreCategoryRepository.findAllWithLabels();
     }
 }
