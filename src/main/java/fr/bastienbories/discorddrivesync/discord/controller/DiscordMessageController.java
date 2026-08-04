@@ -6,10 +6,9 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDto;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordMessageServices;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -29,4 +28,10 @@ public class DiscordMessageController {
         DiscordMessage discordMessage = discordMessageServices.getById(id).orElseThrow(() -> new DiscordMessageNotFoundException(id));
         return discordMessageMapper.discordMessageToDiscordMessageDto(discordMessage);
     }
+
+//    @GetMapping("")
+//    @Transactional(readOnly = true)
+//    public void getMessagesByCategoryId(@RequestParam(name = "categoryId") List<Long> ids){
+//        List<DiscordMessage> discordMessages = discordMessageServices.getListByCoreCategoryIds(ids);
+//    }
 }

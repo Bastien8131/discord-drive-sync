@@ -3,7 +3,6 @@ package fr.bastienbories.discorddrivesync.discord.services;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageRepository;
-import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import net.dv8tion.jda.api.entities.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

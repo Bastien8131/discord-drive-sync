@@ -7,6 +7,8 @@ import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDataDto
 import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
 import org.mapstruct.Mapper;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = {
         CoreLinkMapper.class,
         CoreLabelMapper.class,
@@ -14,4 +16,6 @@ import org.mapstruct.Mapper;
 })
 public interface DiscordMessageDataMapper {
     DiscordMessageDataDto discordMessageDataToDiscordMessageDataDto(DiscordMessageData discordMessageData);
+
+    List<DiscordMessageDataDto> discordMessageDataListToDiscordMessageDataDtoList(List<DiscordMessageData> discordMessageDataList);
 }

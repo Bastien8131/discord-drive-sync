@@ -1,11 +1,9 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
-import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageDataRepository;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
-import fr.bastienbories.discorddrivesync.sync.MessageSyncServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -60,5 +58,21 @@ public class DiscordMessageDataServices {
         discordMessageData.addDriveFileList(driveFiles);
 
         return discordMessageData;
+    }
+
+    public List<DiscordMessageData> getAllByCategoryIds(List<Long> ids) {
+        return discordMessageDataRepository.findAllByCoreCategoryIds(ids);
+    }
+
+    public List<DiscordMessageData> getAllByLabelIds(List<Long> ids) {
+        return discordMessageDataRepository.findAllByCoreLabelsIds(ids);
+    }
+
+    public List<DiscordMessageData> getAllByLabelIdsAndCategoryIds(List<Long> labelIds, List<Long> categoryIds) {
+        return discordMessageDataRepository.findAllByCoreLabelsIdsAndCoreCategoryIds(labelIds, categoryIds);
+    }
+
+    public List<DiscordMessageData> findAll() {
+        return  discordMessageDataRepository.findAll();
     }
 }
