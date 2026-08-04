@@ -74,4 +74,8 @@ public class CoreCategory {
     public List<CoreLabel> getLabels() {
         return labels;
     }
+
+    public void addCoreLabel(CoreLabel coreLabel) {
+        labels.add(coreLabel);
+    }
 }
