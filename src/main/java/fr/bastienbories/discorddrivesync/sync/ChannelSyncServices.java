@@ -7,6 +7,7 @@ import fr.bastienbories.discorddrivesync.core.services.CoreCategoryServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordCategory;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordCategoryServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -28,12 +29,14 @@ public class ChannelSyncServices {
     private final DiscordChannelServices discordChannelServices;
     private final CoreLabelServices coreLabelServices;
     private final CoreCategoryServices coreCategoryServices;
+    private final DiscordApiServices discordApiServices;
 
-    public ChannelSyncServices(DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, CoreLabelServices coreLabelServices, CoreCategoryServices coreCategoryServices) {
+    public ChannelSyncServices(DiscordCategoryServices discordCategoryServices, DiscordChannelServices discordChannelServices, CoreLabelServices coreLabelServices, CoreCategoryServices coreCategoryServices, DiscordApiServices discordApiServices) {
         this.discordCategoryServices = discordCategoryServices;
         this.discordChannelServices = discordChannelServices;
         this.coreLabelServices = coreLabelServices;
         this.coreCategoryServices = coreCategoryServices;
+        this.discordApiServices = discordApiServices;
     }
 
     public void createChannelFromDiscord(TextChannel channel){
@@ -54,10 +57,12 @@ public class ChannelSyncServices {
                         );
                         discordChannelServices.save(discordChannel);
                     }, () -> {
+                        discordApiServices.deleteChannel(channel);
                         LogMessages.notFoundInDatabase(log, CoreCategory.class, discordCategory.getId());
                     });
                 },
                 () -> {
+                    discordApiServices.deleteChannel(channel);
                     LogMessages.notFoundInDatabase(log, DiscordCategory.class, idCategory);
                 }
         );

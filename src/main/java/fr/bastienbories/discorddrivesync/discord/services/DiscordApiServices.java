@@ -136,4 +136,9 @@ public class DiscordApiServices {
         botDeletedMessageIds.add(message.getIdLong());
         Objects.requireNonNull(guild.getTextChannelById(message.getChannelId())).deleteMessageById(message.getId()).queue();
     }
+
+    public void deleteChannel(TextChannel channel){
+        botDeletedChannelIds.add(channel.getIdLong());
+        Objects.requireNonNull(guild.getTextChannelById(channel.getIdLong())).delete().queue();
+    }
 }
