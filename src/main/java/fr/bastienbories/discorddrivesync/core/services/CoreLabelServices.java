@@ -7,6 +7,9 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
 @Transactional
 public class CoreLabelServices {
@@ -21,11 +24,6 @@ public class CoreLabelServices {
         return coreLabelRepository.findByName(name).isPresent();
     }
 
-    public CoreLabel getOrCreateLabelByName(String name) {
-        return coreLabelRepository.findByName(name)
-                .orElseGet(() -> coreLabelRepository.save(new CoreLabel(name)));
-    }
-
     public CoreLabel createByDiscordChannel(DiscordChannel discordChannel) {
         CoreLabel coreLabel = new CoreLabel(discordChannel);
         return coreLabelRepository.save(coreLabel);
@@ -33,5 +31,21 @@ public class CoreLabelServices {
 
     public void addDiscordMessageData(long labelId, DiscordMessageData discordMessageData) {
         coreLabelRepository.findById(labelId).ifPresent(coreLabel -> coreLabel.addDiscordMessageData(discordMessageData));
+    }
+
+    public Optional<CoreLabel> getById(long id) {
+        return coreLabelRepository.findById(id);
+    }
+
+    public List<CoreLabel> getAll() {
+        return coreLabelRepository.findAll();
+    }
+
+    public Optional<CoreLabel> getByName(String name) {
+        return coreLabelRepository.findByName(name);
+    }
+
+    public CoreLabel getOrCreateLabelByName(String name) {
+        return getByName(name).orElseGet(() -> coreLabelRepository.save(new CoreLabel(name)));
     }
 }
