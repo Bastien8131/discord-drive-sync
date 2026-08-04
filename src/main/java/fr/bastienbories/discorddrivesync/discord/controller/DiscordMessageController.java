@@ -28,10 +28,4 @@ public class DiscordMessageController {
         DiscordMessage discordMessage = discordMessageServices.getById(id).orElseThrow(() -> new DiscordMessageNotFoundException(id));
         return discordMessageMapper.discordMessageToDiscordMessageDto(discordMessage);
     }
-
-//    @GetMapping("")
-//    @Transactional(readOnly = true)
-//    public void getMessagesByCategoryId(@RequestParam(name = "categoryId") List<Long> ids){
-//        List<DiscordMessage> discordMessages = discordMessageServices.getListByCoreCategoryIds(ids);
-//    }
 }
