@@ -18,6 +18,18 @@ public class DiscordMessageData {
 
     private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idDiscordUser")
+    private DiscordUser author;
+
+    @ManyToMany
+    @JoinTable(
+            name = "REPOST",
+            joinColumns = @JoinColumn(name = "idDiscordMessageData"),
+            inverseJoinColumns = @JoinColumn(name = "idDiscordUser")
+    )
+    private List<DiscordUser> reposters;
+
     @OneToMany(mappedBy = "discordMessageData")
     private List<DiscordMessage> discordMessages;
 
@@ -37,8 +49,10 @@ public class DiscordMessageData {
 
     protected DiscordMessageData() {}
 
-    public DiscordMessageData(String content) {
+    public DiscordMessageData(String content, DiscordUser discordUser) {
         this.content = content;
+        this.author = discordUser;
+        this.reposters = new ArrayList<>();
         this.discordMessages = new ArrayList<>();
         this.coreLinks = new ArrayList<>();
         this.coreLabels = new ArrayList<>();
@@ -83,4 +97,10 @@ public class DiscordMessageData {
                 addDriveFile(driveFile);
             }
         }
-    }}
+    }
+    public void addReposter(DiscordUser discordUser){
+        if (!reposters.contains(discordUser)){
+            reposters.add(discordUser);
+        }
+    }
+}

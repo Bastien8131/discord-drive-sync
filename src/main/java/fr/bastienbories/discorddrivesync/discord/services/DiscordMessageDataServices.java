@@ -2,6 +2,7 @@ package fr.bastienbories.discorddrivesync.discord.services;
 
 import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageDataRepository;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class DiscordMessageDataServices {
         return discordMessageDataRepository.findByContent((contentDisplay));
     }
 
-    public DiscordMessageData getOrCreate(String content){
+    public DiscordMessageData getOrCreate(DiscordUser discordUser, String content){
         content = TextUtils.removeLinkFromContent(content).toString();
         content = TextUtils.removeNewLines(content).toString();
         content = TextUtils.removeChannelTagFromContent(content);
@@ -45,16 +46,17 @@ public class DiscordMessageDataServices {
 
         if (dataAlreadyExists(content)){
             discordMessageData = findByContent(content);
+            discordMessageData.addReposter(discordUser);
         } else {
-            discordMessageData = new DiscordMessageData(content);
+            discordMessageData = new DiscordMessageData(content, discordUser);
             save(discordMessageData);
         }
 
         return discordMessageData;
     }
 
-    public DiscordMessageData getOrCreateAndAddDriveFiles(String content, List<DriveFile> driveFiles){
-        DiscordMessageData discordMessageData = getOrCreate(content);
+    public DiscordMessageData getOrCreateAndAddDriveFiles(DiscordUser discordUser, String content, List<DriveFile> driveFiles){
+        DiscordMessageData discordMessageData = getOrCreate(discordUser, content);
         discordMessageData.addDriveFileList(driveFiles);
 
         return discordMessageData;

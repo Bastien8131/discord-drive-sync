@@ -45,7 +45,7 @@ public class CommentSyncServices {
 
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(
                 discordUser -> {
-                    DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw());
+                    DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw(), discordUser);
                     discordMessageDataServices.save(discordCommentData);
                     discordMessageServices.getById(refMessageId).ifPresentOrElse(
                             discordRefMessage -> {

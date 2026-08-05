@@ -2,7 +2,10 @@ package fr.bastienbories.discorddrivesync.discord.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+
+import java.util.List;
 
 @Entity
 @Table(name = "DiscordUser")
@@ -12,6 +15,9 @@ public class DiscordUser {
     private long idDiscordUser;
 
     private String name;
+
+    @ManyToMany(mappedBy = "reposters")
+    private List<DiscordMessageData> discordMessageDataList;
 
     protected DiscordUser() {}
 

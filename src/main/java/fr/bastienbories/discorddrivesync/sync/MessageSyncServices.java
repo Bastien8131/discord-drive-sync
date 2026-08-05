@@ -94,7 +94,7 @@ public class MessageSyncServices {
                     discordApiServices.deleteMessage(message);
 
                     //create data obj or fetch from db if alrady exsist
-                    DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(message.getContentRaw(), driveFiles);
+                    DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(discordUser, message.getContentRaw(), driveFiles);
 
                     //tag the content with the label of every channel it is broadcast to
                     for (Long labelId : discordChannelTargetLabelIds) {
