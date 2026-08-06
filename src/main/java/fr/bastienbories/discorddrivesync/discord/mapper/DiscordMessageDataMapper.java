@@ -6,6 +6,7 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDataDto;
 import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
         DriveFileMapper.class
 })
 public interface DiscordMessageDataMapper {
+    @Mapping(target = "authorId", source = "author.id")
     DiscordMessageDataDto discordMessageDataToDiscordMessageDataDto(DiscordMessageData discordMessageData);
 
     List<DiscordMessageDataDto> discordMessageDataListToDiscordMessageDataDtoList(List<DiscordMessageData> discordMessageDataList);

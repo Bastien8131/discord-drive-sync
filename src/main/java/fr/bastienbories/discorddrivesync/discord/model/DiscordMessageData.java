@@ -73,6 +73,8 @@ public class DiscordMessageData {
 
     public String getContent() {return content;}
 
+    public DiscordUser getAuthor() { return author; }
+
     public List<CoreLink> getCoreLinks() {
         return coreLinks;
     }

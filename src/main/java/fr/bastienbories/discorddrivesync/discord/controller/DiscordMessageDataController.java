@@ -1,15 +1,13 @@
 package fr.bastienbories.discorddrivesync.discord.controller;
 
+import fr.bastienbories.discorddrivesync.common.ResourceIdNotFoundException;
 import fr.bastienbories.discorddrivesync.discord.exception.DiscordMessageDataNotFoundException;
 import fr.bastienbories.discorddrivesync.discord.mapper.DiscordMessageDataMapper;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDataDto;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordMessageDataServices;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,6 +21,12 @@ public class DiscordMessageDataController {
     public DiscordMessageDataController(DiscordMessageDataServices discordMessageDataServices, DiscordMessageDataMapper discordMessageDataMapper) {
         this.discordMessageDataServices = discordMessageDataServices;
         this.discordMessageDataMapper = discordMessageDataMapper;
+    }
+
+    @GetMapping("{id}")
+    public DiscordMessageDataDto getDataById(@PathVariable long id){
+        DiscordMessageData discordMessageData = discordMessageDataServices.getById(id).orElseThrow(() -> new DiscordMessageDataNotFoundException(id));
+        return discordMessageDataMapper.discordMessageDataToDiscordMessageDataDto(discordMessageData);
     }
 
     @GetMapping("")

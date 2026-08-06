@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -76,5 +77,9 @@ public class DiscordMessageDataServices {
 
     public List<DiscordMessageData> findAll() {
         return  discordMessageDataRepository.findAll();
+    }
+
+    public Optional<DiscordMessageData> getById(long id) {
+        return discordMessageDataRepository.findById(id);
     }
 }
