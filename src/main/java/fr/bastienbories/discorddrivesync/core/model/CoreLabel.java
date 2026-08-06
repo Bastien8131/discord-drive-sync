@@ -1,7 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -32,9 +31,9 @@ public class CoreLabel {
     @JoinTable(
             name = "ASSOCIATE",
             joinColumns = @JoinColumn(name = "idLabel"),
-            inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
+            inverseJoinColumns = @JoinColumn(name = "idCoreContent")
     )
-    private List<DiscordMessageData> associatedMessages;
+    private List<CoreContent> associatedContents;
 
     protected CoreLabel() {}
 
@@ -43,7 +42,7 @@ public class CoreLabel {
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
         this.files = new ArrayList<>();
-        this.associatedMessages = new ArrayList<>();
+        this.associatedContents = new ArrayList<>();
     }
 
     public CoreLabel(DiscordChannel discordChannel) {
@@ -51,7 +50,7 @@ public class CoreLabel {
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
         this.files = new ArrayList<>();
-        this.associatedMessages = new ArrayList<>();
+        this.associatedContents = new ArrayList<>();
 
         this.discordChannels.add(discordChannel);
     }
@@ -87,10 +86,10 @@ public class CoreLabel {
         return name;
     }
 
-    public void addDiscordMessageData(DiscordMessageData discordMessageData) {
-        if (!associatedMessages.contains(discordMessageData)) {
-            associatedMessages.add(discordMessageData);
-            discordMessageData.addLabel(this);
+    public void addCoreContent(CoreContent coreContent) {
+        if (!associatedContents.contains(coreContent)) {
+            associatedContents.add(coreContent);
+            coreContent.addLabel(this);
         }
     }
 }

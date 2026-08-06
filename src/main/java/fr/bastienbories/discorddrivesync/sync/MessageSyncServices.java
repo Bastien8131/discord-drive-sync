@@ -1,12 +1,13 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
+import fr.bastienbories.discorddrivesync.core.services.CoreContentServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.services.*;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
@@ -33,7 +34,7 @@ public class MessageSyncServices {
 
     private final DiscordUserServices discordUserServices;
     private final DiscordChannelServices discordChannelServices;
-    private final DiscordMessageDataServices discordMessageDataServices;
+    private final CoreContentServices coreContentServices;
     private final DiscordMessageServices discordMessageServices;
 
     private final CoreLinkServices coreLinkServices;
@@ -42,11 +43,11 @@ public class MessageSyncServices {
     private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, CoreLabelServices coreLabelServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, CoreContentServices coreContentServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, CoreLabelServices coreLabelServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
-        this.discordMessageDataServices = discordMessageDataServices;
+        this.coreContentServices = coreContentServices;
         this.discordMessageServices = discordMessageServices;
         this.coreLinkServices = coreLinkServices;
         this.coreLabelServices = coreLabelServices;
@@ -94,16 +95,16 @@ public class MessageSyncServices {
                     discordApiServices.deleteMessage(message);
 
                     //create data obj or fetch from db if alrady exsist
-                    DiscordMessageData discordMessageData = discordMessageDataServices.getOrCreateAndAddDriveFiles(discordUser, message.getContentRaw(), driveFiles);
+                    CoreContent coreContent = coreContentServices.getOrCreateAndAddDriveFiles(discordUser, message.getContentRaw(), driveFiles);
 
                     //tag the content with the label of every channel it is broadcast to
                     for (Long labelId : discordChannelTargetLabelIds) {
-                        coreLabelServices.addDiscordMessageData(labelId, discordMessageData);
+                        coreLabelServices.addCoreContent(labelId, coreContent);
                     }
 
-                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
+                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), coreContent);
 
-                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, discordMessageData.getContent(), driveFiles, links).thenAccept(botMessages -> {
+                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
 
                         for (Message botMessage : botMessages) {
                             long botMsgChannelId = botMessage.getChannelIdLong();
@@ -112,7 +113,7 @@ public class MessageSyncServices {
                                     discordChannel -> {
                                         DiscordMessage discordMessage = new DiscordMessage(
                                                 botMessage.getIdLong(),
-                                                discordMessageData,
+                                                coreContent,
                                                 discordUser,
                                                 discordChannel
                                         );
@@ -143,13 +144,13 @@ public class MessageSyncServices {
 
         long messageId = event.getMessageIdLong();
         discordMessageServices.getById(messageId).ifPresentOrElse(discordMessage -> {
-            DiscordMessageData discordMessageData = discordMessage.getDiscordMessageData();
+            CoreContent coreContent = discordMessage.getContent();
             discordMessageServices.delete(discordMessage);
 
-            if (!discordMessageServices.dataExistsInSomeChannel(discordMessageData)) {
-                driveFileServices.findByDiscordMessageData(discordMessageData).ifPresentOrElse(
+            if (!discordMessageServices.dataExistsInSomeChannel(coreContent)) {
+                driveFileServices.findByCoreContent(coreContent).ifPresentOrElse(
                         s3SyncServices::deleteMultipleFiles,
-                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, DiscordMessageData.class, discordMessageData.getId())
+                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreContent.class, coreContent.getId())
                 );
             }
         }, () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId));

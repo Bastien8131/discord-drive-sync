@@ -1,12 +1,13 @@
 package fr.bastienbories.discorddrivesync.discord.mapper;
 
+import fr.bastienbories.discorddrivesync.core.mapper.CoreContentMapper;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordMessageDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        DiscordMessageDataMapper.class,
+        CoreContentMapper.class,
         DiscordUserMapper.class
 })
 public interface DiscordMessageMapper {

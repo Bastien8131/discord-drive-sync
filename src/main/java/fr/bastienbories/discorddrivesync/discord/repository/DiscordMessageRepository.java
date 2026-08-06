@@ -1,13 +1,13 @@
 package fr.bastienbories.discorddrivesync.discord.repository;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface DiscordMessageRepository extends JpaRepository<DiscordMessage, Long> {
-    List<DiscordMessage> getAllByDiscordMessageData(DiscordMessageData discordMessageData);
+    List<DiscordMessage> getAllByContent(CoreContent coreContent);
 
-    boolean existsByDiscordMessageData(DiscordMessageData discordMessageData);
+    boolean existsByContent(CoreContent coreContent);
 }

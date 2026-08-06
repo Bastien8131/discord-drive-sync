@@ -1,6 +1,5 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -22,16 +21,16 @@ public class CoreLink {
     @JoinTable(
             name = "CONTAIN",
             joinColumns = @JoinColumn(name = "idLink"),
-            inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
+            inverseJoinColumns = @JoinColumn(name = "idCoreContent")
     )
-    private List<DiscordMessageData> referencedInMessages;
+    private List<CoreContent> referencedInContents;
 
     protected CoreLink() {}
 
-    public CoreLink(String url, DiscordMessageData discordMessageData) {
+    public CoreLink(String url, CoreContent coreContent) {
         this.url = url;
-        this.referencedInMessages = new ArrayList<>();
-        addDiscordMessageData(discordMessageData);
+        this.referencedInContents = new ArrayList<>();
+        addCoreContent(coreContent);
     }
 
     @Override
@@ -56,9 +55,9 @@ public class CoreLink {
         return url;
     }
 
-    public void addDiscordMessageData(DiscordMessageData discordMessageData){
-        referencedInMessages.add(discordMessageData);
-        discordMessageData.addLink(this);
+    public void addCoreContent(CoreContent coreContent){
+        referencedInContents.add(coreContent);
+        coreContent.addLink(this);
 
     }
 }

@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -19,8 +20,8 @@ public class DiscordComment extends DiscordMessage {
 
     protected DiscordComment() {}
 
-    public DiscordComment(long id, DiscordMessageData discordMessageData, DiscordUser author, DiscordChannel discordChannel, DiscordMessage discordReferencedMessage, DriveFile file) {
-        super(id, discordMessageData, author, discordChannel);
+    public DiscordComment(long id, CoreContent content, DiscordUser author, DiscordChannel discordChannel, DiscordMessage discordReferencedMessage, DriveFile file) {
+        super(id, content, author, discordChannel);
         this.discordReferencedMessage = discordReferencedMessage;
         this.file = file;
     }

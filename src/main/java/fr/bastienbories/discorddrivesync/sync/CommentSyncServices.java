@@ -1,6 +1,8 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
+import fr.bastienbories.discorddrivesync.core.services.CoreContentServices;
 import fr.bastienbories.discorddrivesync.discord.model.*;
 import fr.bastienbories.discorddrivesync.discord.services.*;
 import net.dv8tion.jda.api.entities.Message;
@@ -23,15 +25,15 @@ public class CommentSyncServices {
 
     private final DiscordUserServices discordUserServices;
     private final DiscordChannelServices discordChannelServices;
-    private final DiscordMessageDataServices discordMessageDataServices;
+    private final CoreContentServices coreContentServices;
     private final DiscordMessageServices discordMessageServices;
     private final DiscordCommentServices discordCommentServices;
 
-    public CommentSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, DiscordCommentServices discordCommentServices) {
+    public CommentSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, CoreContentServices coreContentServices, DiscordMessageServices discordMessageServices, DiscordCommentServices discordCommentServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
-        this.discordMessageDataServices = discordMessageDataServices;
+        this.coreContentServices = coreContentServices;
         this.discordMessageServices = discordMessageServices;
         this.discordCommentServices = discordCommentServices;
     }
@@ -45,12 +47,12 @@ public class CommentSyncServices {
 
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(
                 discordUser -> {
-                    DiscordMessageData discordCommentData = new DiscordMessageData(comment.getContentRaw(), discordUser);
-                    discordMessageDataServices.save(discordCommentData);
+                    CoreContent commentContent = new CoreContent(comment.getContentRaw(), discordUser);
+                    coreContentServices.save(commentContent);
                     discordMessageServices.getById(refMessageId).ifPresentOrElse(
                             discordRefMessage -> {
-                                DiscordMessageData discordRefMessageData = discordRefMessage.getDiscordMessageData();
-                                List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(discordRefMessageData);
+                                CoreContent refContent = discordRefMessage.getContent();
+                                List<DiscordMessage> discordMessageTargetsList = discordMessageServices.getListByData(refContent);
                                 discordApiServices.sendMultipleComment(discordMessageTargetsList, comment).thenAccept(botComments -> {
                                     for (Message botComment: botComments){
                                         long botChannelId = botComment.getChannelIdLong();
@@ -61,7 +63,7 @@ public class CommentSyncServices {
                                                         discordMessage -> {
                                                             DiscordComment discordComment = new DiscordComment(
                                                                     botComment.getIdLong(),
-                                                                    discordCommentData,
+                                                                    commentContent,
                                                                     discordUser,
                                                                     discordChannel,
                                                                     discordMessage,

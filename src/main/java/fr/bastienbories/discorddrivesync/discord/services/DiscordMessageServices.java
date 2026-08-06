@@ -1,7 +1,7 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageRepository;
 import net.dv8tion.jda.api.entities.Message;
 import org.springframework.stereotype.Service;
@@ -39,8 +39,8 @@ public class DiscordMessageServices {
         return false;
     }
 
-    public List<DiscordMessage> getListByData(DiscordMessageData discordMessageData) {
-        return discordMessageRepository.getAllByDiscordMessageData(discordMessageData);
+    public List<DiscordMessage> getListByData(CoreContent coreContent) {
+        return discordMessageRepository.getAllByContent(coreContent);
     }
 
     public void delete(DiscordMessage discordMessage) {
@@ -51,7 +51,7 @@ public class DiscordMessageServices {
         return discordMessageRepository.findById(id);
     }
 
-    public boolean dataExistsInSomeChannel(DiscordMessageData discordMessageData) {
-        return discordMessageRepository.existsByDiscordMessageData(discordMessageData);
+    public boolean dataExistsInSomeChannel(CoreContent coreContent) {
+        return discordMessageRepository.existsByContent(coreContent);
     }
 }

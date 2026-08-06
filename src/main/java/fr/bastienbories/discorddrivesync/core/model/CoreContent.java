@@ -1,7 +1,7 @@
-package fr.bastienbories.discorddrivesync.discord.model;
+package fr.bastienbories.discorddrivesync.core.model;
 
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.core.model.CoreLink;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "DiscordMessageData")
-public class DiscordMessageData {
+@Table(name = "CoreContent")
+public class CoreContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String content;
+    private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser")
@@ -25,32 +25,32 @@ public class DiscordMessageData {
     @ManyToMany
     @JoinTable(
             name = "REPOST",
-            joinColumns = @JoinColumn(name = "idDiscordMessageData"),
+            joinColumns = @JoinColumn(name = "idCoreContent"),
             inverseJoinColumns = @JoinColumn(name = "idDiscordUser")
     )
     private List<DiscordUser> reposters;
 
-    @OneToMany(mappedBy = "discordMessageData")
+    @OneToMany(mappedBy = "content")
     private List<DiscordMessage> discordMessages;
 
-    @ManyToMany(mappedBy = "referencedInMessages")
+    @ManyToMany(mappedBy = "referencedInContents")
     private List<CoreLink> links;
 
-    @ManyToMany(mappedBy = "associatedMessages")
+    @ManyToMany(mappedBy = "associatedContents")
     private List<CoreLabel> labels;
 
     @ManyToMany
     @JoinTable(
             name = "DESCRIPTION",
-            joinColumns = @JoinColumn(name = "idDiscordMessageData"),
+            joinColumns = @JoinColumn(name = "idCoreContent"),
             inverseJoinColumns = @JoinColumn(name = "idFile")
     )
     private List<DriveFile> files;
 
-    protected DiscordMessageData() {}
+    protected CoreContent() {}
 
-    public DiscordMessageData(String content, DiscordUser discordUser) {
-        this.content = content;
+    public CoreContent(String text, DiscordUser discordUser) {
+        this.text = text;
         this.author = discordUser;
         this.reposters = new ArrayList<>();
         this.discordMessages = new ArrayList<>();
@@ -61,9 +61,9 @@ public class DiscordMessageData {
 
     @Override
     public String toString() {
-        return "DiscordMessageData{" +
+        return "CoreContent{" +
                 "id=" + id +
-                ", content='" + content + '\'' +
+                ", text='" + text + '\'' +
                 '}';
     }
 
@@ -71,7 +71,7 @@ public class DiscordMessageData {
         return id;
     }
 
-    public String getContent() {return content;}
+    public String getText() {return text;}
 
     public DiscordUser getAuthor() { return author; }
 

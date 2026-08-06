@@ -1,7 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.*;
 
@@ -26,7 +26,7 @@ public class DriveFile {
     private DiscordUser uploader;
 
     @ManyToMany(mappedBy = "files")
-    private List<DiscordMessageData> attachedMessages;
+    private List<CoreContent> attachedContents;
 
     @ManyToMany
     @JoinTable(
@@ -44,7 +44,7 @@ public class DriveFile {
         this.storageKey = storageKey;
         this.shareToken = generateShareToken();
         this.uploader = uploader;
-        this.attachedMessages = new ArrayList<>();
+        this.attachedContents = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
@@ -82,7 +82,7 @@ public class DriveFile {
         return shareToken;
     }
 
-    public void addDiscordMessageData(DiscordMessageData discordMessageData) {
-        attachedMessages.add(discordMessageData);
+    public void addCoreContent(CoreContent coreContent) {
+        attachedContents.add(coreContent);
     }
 }

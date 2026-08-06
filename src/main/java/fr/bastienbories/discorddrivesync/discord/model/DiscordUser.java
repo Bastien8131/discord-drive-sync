@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
@@ -17,7 +18,7 @@ public class DiscordUser {
     private String name;
 
     @ManyToMany(mappedBy = "reposters")
-    private List<DiscordMessageData> repostedMessages;
+    private List<CoreContent> repostedContents;
 
     protected DiscordUser() {}
 

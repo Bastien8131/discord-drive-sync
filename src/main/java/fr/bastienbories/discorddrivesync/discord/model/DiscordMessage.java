@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,8 +14,8 @@ public class DiscordMessage {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDiscordMessageData")
-    private DiscordMessageData discordMessageData;
+    @JoinColumn(name = "idCoreContent")
+    private CoreContent content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser")
@@ -26,9 +27,9 @@ public class DiscordMessage {
 
     protected DiscordMessage() {}
 
-    public DiscordMessage(long id, DiscordMessageData discordMessageData, DiscordUser author, DiscordChannel discordChannel) {
+    public DiscordMessage(long id, CoreContent content, DiscordUser author, DiscordChannel discordChannel) {
         this.id = id;
-        this.discordMessageData = discordMessageData;
+        this.content = content;
         this.author = author;
         this.discordChannel = discordChannel;
     }
@@ -46,8 +47,8 @@ public class DiscordMessage {
 
     public DiscordUser getAuthor() {return author;}
 
-    public DiscordMessageData getDiscordMessageData() {
-        return discordMessageData;
+    public CoreContent getContent() {
+        return content;
     }
 
     public DiscordChannel getDiscordChannel() {
