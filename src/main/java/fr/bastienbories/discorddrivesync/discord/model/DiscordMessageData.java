@@ -14,7 +14,7 @@ public class DiscordMessageData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idDiscordMessageData;
+    private long id;
 
     private String content;
 
@@ -33,11 +33,11 @@ public class DiscordMessageData {
     @OneToMany(mappedBy = "discordMessageData")
     private List<DiscordMessage> discordMessages;
 
-    @ManyToMany(mappedBy = "discordMessageDataList")
-    private List<CoreLink> coreLinks;
+    @ManyToMany(mappedBy = "referencedInMessages")
+    private List<CoreLink> links;
 
-    @ManyToMany(mappedBy = "discordMessageDataList")
-    private List<CoreLabel> coreLabels;
+    @ManyToMany(mappedBy = "associatedMessages")
+    private List<CoreLabel> labels;
 
     @ManyToMany
     @JoinTable(
@@ -45,7 +45,7 @@ public class DiscordMessageData {
             joinColumns = @JoinColumn(name = "idDiscordMessageData"),
             inverseJoinColumns = @JoinColumn(name = "idFile")
     )
-    private List<DriveFile> driveFiles;
+    private List<DriveFile> files;
 
     protected DiscordMessageData() {}
 
@@ -54,48 +54,48 @@ public class DiscordMessageData {
         this.author = discordUser;
         this.reposters = new ArrayList<>();
         this.discordMessages = new ArrayList<>();
-        this.coreLinks = new ArrayList<>();
-        this.coreLabels = new ArrayList<>();
-        this.driveFiles = new ArrayList<>();
+        this.links = new ArrayList<>();
+        this.labels = new ArrayList<>();
+        this.files = new ArrayList<>();
     }
 
     @Override
     public String toString() {
         return "DiscordMessageData{" +
-                "idDiscordMessageData=" + idDiscordMessageData +
+                "id=" + id +
                 ", content='" + content + '\'' +
                 '}';
     }
 
     public long getId() {
-        return idDiscordMessageData;
+        return id;
     }
 
     public String getContent() {return content;}
 
     public DiscordUser getAuthor() { return author; }
 
-    public List<CoreLink> getCoreLinks() {
-        return coreLinks;
+    public List<CoreLink> getLinks() {
+        return links;
     }
 
-    public List<CoreLabel> getCoreLabels() {
-        return coreLabels;
+    public List<CoreLabel> getLabels() {
+        return labels;
     }
 
-    public List<DriveFile> getDriveFiles() {
-        return driveFiles;
+    public List<DriveFile> getFiles() {
+        return files;
     }
 
-    public void addLink(CoreLink coreLink) { coreLinks.add(coreLink); }
+    public void addLink(CoreLink coreLink) { links.add(coreLink); }
 
-    public void addLabel(CoreLabel coreLabel) { coreLabels.add(coreLabel); }
+    public void addLabel(CoreLabel coreLabel) { labels.add(coreLabel); }
 
-    public void addDriveFile(DriveFile driveFile) { driveFiles.add(driveFile); }
+    public void addDriveFile(DriveFile driveFile) { files.add(driveFile); }
 
     public void addDriveFileList(List<DriveFile> driveFiles){
         for (DriveFile driveFile : driveFiles) {
-            if (!getDriveFiles().contains(driveFile)){
+            if (!getFiles().contains(driveFile)){
                 addDriveFile(driveFile);
             }
         }

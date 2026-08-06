@@ -12,30 +12,30 @@ import java.util.List;
 public class DiscordUser {
 
     @Id
-    private long idDiscordUser;
+    private long id;
 
     private String name;
 
     @ManyToMany(mappedBy = "reposters")
-    private List<DiscordMessageData> discordMessageDataList;
+    private List<DiscordMessageData> repostedMessages;
 
     protected DiscordUser() {}
 
-    public DiscordUser(long idDiscordUser, String name) {
-        this.idDiscordUser = idDiscordUser;
+    public DiscordUser(long id, String name) {
+        this.id = id;
         this.name = name;
     }
 
     @Override
     public String toString() {
         return "DiscordUser{" +
-                "idDiscordUser=" + idDiscordUser +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
     }
 
     public long getId() {
-        return idDiscordUser;
+        return id;
     }
 
     public String getName() {

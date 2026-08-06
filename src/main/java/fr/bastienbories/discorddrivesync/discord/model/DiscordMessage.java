@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 public class DiscordMessage {
 
     @Id
-    private long idDiscordMessage;
+    private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordMessageData")
@@ -18,7 +18,7 @@ public class DiscordMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser")
-    private DiscordUser discordUser;
+    private DiscordUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordChannel")
@@ -26,25 +26,25 @@ public class DiscordMessage {
 
     protected DiscordMessage() {}
 
-    public DiscordMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
-        this.idDiscordMessage = idDiscordMessage;
+    public DiscordMessage(long id, DiscordMessageData discordMessageData, DiscordUser author, DiscordChannel discordChannel) {
+        this.id = id;
         this.discordMessageData = discordMessageData;
-        this.discordUser = discordUser;
+        this.author = author;
         this.discordChannel = discordChannel;
     }
 
     @Override
     public String toString() {
         return "DiscordMessage{" +
-                "idDiscordMessage=" + idDiscordMessage +
+                "id=" + id +
                 '}';
     }
 
     public long getId() {
-        return idDiscordMessage;
+        return id;
     }
 
-    public DiscordUser getDiscordUser() {return discordUser;}
+    public DiscordUser getAuthor() {return author;}
 
     public DiscordMessageData getDiscordMessageData() {
         return discordMessageData;

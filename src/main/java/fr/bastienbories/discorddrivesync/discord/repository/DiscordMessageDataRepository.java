@@ -13,18 +13,18 @@ public interface DiscordMessageDataRepository extends JpaRepository<DiscordMessa
     DiscordMessageData findByContent(String content);
 
     @Query("select distinct dmd from DiscordMessageData dmd " +
-            "join dmd.coreLabels cl join cl.categories c " +
-            "where c.idCategory in :ids")
+            "join dmd.labels cl join cl.categories c " +
+            "where c.id in :ids")
     List<DiscordMessageData> findAllByCoreCategoryIds(@Param("ids") List<Long> ids);
 
     @Query("select distinct dmd from DiscordMessageData dmd " +
-            "join dmd.coreLabels cl " +
-            "where cl.idLabel in :ids")
+            "join dmd.labels cl " +
+            "where cl.id in :ids")
     List<DiscordMessageData> findAllByCoreLabelsIds(List<Long> ids);
 
     @Query("select distinct dmd from DiscordMessageData dmd " +
-            "join dmd.coreLabels cl join cl.categories c " +
-            "where c.idCategory in :categoryIds " +
-            "and cl.idLabel in :labelIds")
+            "join dmd.labels cl join cl.categories c " +
+            "where c.id in :categoryIds " +
+            "and cl.id in :labelIds")
     List<DiscordMessageData> findAllByCoreLabelsIdsAndCoreCategoryIds(List<Long> labelIds, List<Long> categoryIds);
 }

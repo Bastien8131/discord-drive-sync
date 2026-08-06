@@ -14,7 +14,7 @@ public class CoreLabel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idLabel;
+    private long id;
 
     @Column(unique = true)
     private String name;
@@ -26,7 +26,7 @@ public class CoreLabel {
     private List<CoreCategory> categories;
 
     @ManyToMany(mappedBy = "labels")
-    private List<DriveFile> driveFiles;
+    private List<DriveFile> files;
 
     @ManyToMany
     @JoinTable(
@@ -34,7 +34,7 @@ public class CoreLabel {
             joinColumns = @JoinColumn(name = "idLabel"),
             inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
     )
-    private List<DiscordMessageData> discordMessageDataList;
+    private List<DiscordMessageData> associatedMessages;
 
     protected CoreLabel() {}
 
@@ -42,16 +42,16 @@ public class CoreLabel {
         this.name = name;
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
-        this.driveFiles = new ArrayList<>();
-        this.discordMessageDataList = new ArrayList<>();
+        this.files = new ArrayList<>();
+        this.associatedMessages = new ArrayList<>();
     }
 
     public CoreLabel(DiscordChannel discordChannel) {
         this.name = discordChannel.getName();
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
-        this.driveFiles = new ArrayList<>();
-        this.discordMessageDataList = new ArrayList<>();
+        this.files = new ArrayList<>();
+        this.associatedMessages = new ArrayList<>();
 
         this.discordChannels.add(discordChannel);
     }
@@ -59,7 +59,7 @@ public class CoreLabel {
     @Override
     public String toString() {
         return "Label{" +
-                "idLabel=" + idLabel +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
     }
@@ -68,10 +68,10 @@ public class CoreLabel {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (idLabel == 0) return false;
+        if (id == 0) return false;
 
         CoreLabel coreLabel = (CoreLabel) o;
-        return idLabel == coreLabel.idLabel;
+        return id == coreLabel.id;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class CoreLabel {
     }
 
     public long getId() {
-        return idLabel;
+        return id;
     }
 
     public String getName() {
@@ -88,8 +88,8 @@ public class CoreLabel {
     }
 
     public void addDiscordMessageData(DiscordMessageData discordMessageData) {
-        if (!discordMessageDataList.contains(discordMessageData)) {
-            discordMessageDataList.add(discordMessageData);
+        if (!associatedMessages.contains(discordMessageData)) {
+            associatedMessages.add(discordMessageData);
             discordMessageData.addLabel(this);
         }
     }

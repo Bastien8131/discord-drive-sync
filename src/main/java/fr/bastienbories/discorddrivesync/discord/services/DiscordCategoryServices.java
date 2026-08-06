@@ -28,8 +28,8 @@ public class DiscordCategoryServices {
         return discordCategoryRepository.findById(id);
     }
 
-    public void deleteById(long idLong) {
-        discordCategoryRepository.deleteById(idLong);
+    public void deleteById(long id) {
+        discordCategoryRepository.deleteById(id);
     }
 
     public void save(DiscordCategory discordCategory) {

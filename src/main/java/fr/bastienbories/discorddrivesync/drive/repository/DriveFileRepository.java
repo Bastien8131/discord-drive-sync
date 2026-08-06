@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface DriveFileRepository extends JpaRepository<DriveFile, Long> {
     Optional<DriveFile> findDriveFileByShareToken(String shareToken);
 
-    Optional<List<DriveFile>> findByDiscordMessageDataListContaining(DiscordMessageData discordMessageData);
+    Optional<List<DriveFile>> findByAttachedMessagesContaining(DiscordMessageData discordMessageData);
 }

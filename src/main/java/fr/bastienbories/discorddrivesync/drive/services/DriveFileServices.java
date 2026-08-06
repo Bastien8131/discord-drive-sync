@@ -50,14 +50,14 @@ public class DriveFileServices {
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> downloadFile(DriveFile driveFile){
         return s3AsyncClient.getObject(req -> req
                 .bucket("discord-drive-sync")
-                .key(driveFile.getPath())
+                .key(driveFile.getStorageKey())
                 .build(),
                 AsyncResponseTransformer.toBlockingInputStream()
         );
     }
 
     public Optional<List<DriveFile>> findByDiscordMessageData(DiscordMessageData discordMessageData) {
-        return driveFileRepository.findByDiscordMessageDataListContaining(discordMessageData);
+        return driveFileRepository.findByAttachedMessagesContaining(discordMessageData);
     }
 
     public void delete(DriveFile driveFile) {

@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface CoreCategoryRepository extends JpaRepository<CoreCategory, Long> {
     Optional<CoreCategory> findCoreCategoryByDiscordCategory_Id(long id);
 
-    @Query("SELECT c from CoreCategory c join fetch c.labels where c.idCategory = :id")
+    @Query("SELECT c from CoreCategory c join fetch c.labels where c.id = :id")
     Optional<CoreCategory> findByIdWithLabels(@Param("id") long id);
 
     @Query("SELECT DISTINCT c FROM CoreCategory c LEFT JOIN FETCH c.labels")

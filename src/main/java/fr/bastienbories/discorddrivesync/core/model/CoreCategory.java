@@ -12,7 +12,7 @@ public class CoreCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idCategory;
+    private long id;
 
     @Column(unique = true)
     private String name;
@@ -39,7 +39,7 @@ public class CoreCategory {
     @Override
     public String toString() {
         return "Category{" +
-                "idCategory=" + idCategory +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
     }
@@ -48,10 +48,10 @@ public class CoreCategory {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (idCategory == 0) return false;
+        if (id == 0) return false;
 
         CoreCategory that = (CoreCategory) o;
-        return idCategory == that.idCategory;
+        return id == that.id;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class CoreCategory {
     }
 
     public long getId() {
-        return idCategory;
+        return id;
     }
 
     public String getName() {

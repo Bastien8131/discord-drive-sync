@@ -14,7 +14,7 @@ import java.util.Optional;
 @Transactional
 public class DiscordMessageServices {
 
-    public final DiscordMessageRepository discordMessageRepository;
+    private final DiscordMessageRepository discordMessageRepository;
 
     public DiscordMessageServices(DiscordMessageRepository discordMessageRepository) {
         this.discordMessageRepository = discordMessageRepository;
@@ -47,8 +47,8 @@ public class DiscordMessageServices {
         discordMessageRepository.delete(discordMessage);
     }
 
-    public Optional<DiscordMessage> getById(long messageIdLong) {
-        return discordMessageRepository.findById(messageIdLong);
+    public Optional<DiscordMessage> getById(long id) {
+        return discordMessageRepository.findById(id);
     }
 
     public boolean dataExistsInSomeChannel(DiscordMessageData discordMessageData) {

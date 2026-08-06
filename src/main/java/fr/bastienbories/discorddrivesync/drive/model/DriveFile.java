@@ -13,20 +13,20 @@ import java.util.List;
 public class DriveFile {
 
     @Id
-    private long idFile;
+    private long id;
 
     private String name;
 
-    private String path;
+    private String storageKey;
 
     private String shareToken;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser", nullable = false)
-    private DiscordUser discordUser;
+    private DiscordUser uploader;
 
-    @ManyToMany(mappedBy = "driveFiles")
-    private List<DiscordMessageData> discordMessageDataList;
+    @ManyToMany(mappedBy = "files")
+    private List<DiscordMessageData> attachedMessages;
 
     @ManyToMany
     @JoinTable(
@@ -38,13 +38,13 @@ public class DriveFile {
 
     protected DriveFile() {}
 
-    public DriveFile(long idFile, String name, String path, DiscordUser discordUser) {
-        this.idFile = idFile;
+    public DriveFile(long id, String name, String storageKey, DiscordUser uploader) {
+        this.id = id;
         this.name = name;
-        this.path = path;
+        this.storageKey = storageKey;
         this.shareToken = generateShareToken();
-        this.discordUser = discordUser;
-        this.discordMessageDataList = new ArrayList<>();
+        this.uploader = uploader;
+        this.attachedMessages = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
@@ -58,7 +58,7 @@ public class DriveFile {
         if (o == null || getClass() != o.getClass()) return false;
 
         DriveFile driveFile = (DriveFile) o;
-        return idFile == driveFile.idFile;
+        return id == driveFile.id;
     }
 
     @Override
@@ -67,15 +67,15 @@ public class DriveFile {
     }
 
     public long getId() {
-        return idFile;
+        return id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getPath() {
-        return path;
+    public String getStorageKey() {
+        return storageKey;
     }
 
     public String getShareToken() {
@@ -83,6 +83,6 @@ public class DriveFile {
     }
 
     public void addDiscordMessageData(DiscordMessageData discordMessageData) {
-        discordMessageDataList.add(discordMessageData);
+        attachedMessages.add(discordMessageData);
     }
 }

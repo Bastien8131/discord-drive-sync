@@ -13,7 +13,7 @@ public class CoreLink {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idLink;
+    private long id;
 
     @Column(unique = true, nullable = false, columnDefinition = "TEXT")
     private String url;
@@ -24,13 +24,13 @@ public class CoreLink {
             joinColumns = @JoinColumn(name = "idLink"),
             inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
     )
-    private List<DiscordMessageData> discordMessageDataList;
+    private List<DiscordMessageData> referencedInMessages;
 
     protected CoreLink() {}
 
     public CoreLink(String url, DiscordMessageData discordMessageData) {
         this.url = url;
-        this.discordMessageDataList = new ArrayList<>();
+        this.referencedInMessages = new ArrayList<>();
         addDiscordMessageData(discordMessageData);
     }
 
@@ -49,7 +49,7 @@ public class CoreLink {
     }
 
     public Long getId() {
-        return idLink;
+        return id;
     }
 
     public String getUrl() {
@@ -57,7 +57,7 @@ public class CoreLink {
     }
 
     public void addDiscordMessageData(DiscordMessageData discordMessageData){
-        discordMessageDataList.add(discordMessageData);
+        referencedInMessages.add(discordMessageData);
         discordMessageData.addLink(this);
 
     }

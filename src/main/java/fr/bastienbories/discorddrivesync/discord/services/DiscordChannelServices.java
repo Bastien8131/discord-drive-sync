@@ -13,7 +13,7 @@ import java.util.Optional;
 @Transactional
 public class DiscordChannelServices {
 
-    public final DiscordChannelRepository discordChannelRepository;
+    private final DiscordChannelRepository discordChannelRepository;
 
     public DiscordChannelServices(DiscordChannelRepository discordChannelRepository) {
         this.discordChannelRepository = discordChannelRepository;
@@ -23,8 +23,8 @@ public class DiscordChannelServices {
         discordChannelRepository.save(discordChannel);
     }
 
-    public Optional<DiscordChannel> getById(long idLong) {
-        return discordChannelRepository.findById(idLong);
+    public Optional<DiscordChannel> getById(long id) {
+        return discordChannelRepository.findById(id);
     }
 
     public void delete(DiscordChannel discordChannel) {

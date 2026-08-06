@@ -11,7 +11,7 @@ import java.util.Objects;
 public class DiscordChannel {
 
     @Id
-    private long idDiscordChannel;
+    private long id;
 
     private String name;
 
@@ -23,13 +23,13 @@ public class DiscordChannel {
     private CoreLabel label;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDiscCategory")
+    @JoinColumn(name = "idDiscordCategory")
     private DiscordCategory discordCategory;
 
     protected DiscordChannel() {}
 
-    public DiscordChannel(long idDiscordChannel, String name, ChannelType type, CoreLabel label, DiscordCategory discordCategory) {
-        this.idDiscordChannel = idDiscordChannel;
+    public DiscordChannel(long id, String name, ChannelType type, CoreLabel label, DiscordCategory discordCategory) {
+        this.id = id;
         this.name = name;
         this.type = type;
         this.label = label;
@@ -39,7 +39,7 @@ public class DiscordChannel {
     @Override
     public String toString() {
         return "DiscordChannel{" +
-                "idDiscordChannel=" + idDiscordChannel +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", type=" + type +
                 '}';
@@ -51,7 +51,7 @@ public class DiscordChannel {
         if (o == null || getClass() != o.getClass()) return false;
 
         DiscordChannel that = (DiscordChannel) o;
-        return idDiscordChannel == that.idDiscordChannel;
+        return id == that.id;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DiscordChannel {
     }
 
     public long getId() {
-        return idDiscordChannel;
+        return id;
     }
 
     public String getName() {

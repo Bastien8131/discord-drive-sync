@@ -9,8 +9,8 @@ import java.util.List;
 public record DiscordMessageDataDto(
         String content,
         Long authorId,
-        List<CoreLinkDto> coreLinks,
-        List<CoreLabelDto> coreLabels,
-        List<DriveFileDto> driveFiles
+        List<CoreLinkDto> links,
+        List<CoreLabelDto> labels,
+        List<DriveFileDto> files
 ) {
 }
