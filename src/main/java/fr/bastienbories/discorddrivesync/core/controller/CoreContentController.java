@@ -23,6 +23,7 @@ public class CoreContentController {
     }
 
     @GetMapping("{id}")
+    @Transactional(readOnly = true)
     public CoreContentDto getDataById(@PathVariable long id){
         CoreContent coreContent = coreContentServices.getById(id).orElseThrow(() -> new CoreContentNotFoundException(id));
         return coreContentMapper.coreContentToCoreContentDto(coreContent);

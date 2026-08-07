@@ -75,6 +75,14 @@ public class CoreContent {
 
     public DiscordUser getAuthor() { return author; }
 
+    public List<DiscordUser> getReposters() {
+        return reposters;
+    }
+
+    public List<DiscordMessage> getDiscordMessages() {
+        return discordMessages;
+    }
+
     public List<CoreLink> getLinks() {
         return links;
     }

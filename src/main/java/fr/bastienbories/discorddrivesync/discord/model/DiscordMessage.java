@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.common.HasId;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import jakarta.persistence.*;
 
@@ -8,7 +9,7 @@ import jakarta.persistence.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
 @DiscriminatorValue("DISCORD_MESSAGE")
-public class DiscordMessage {
+public class DiscordMessage implements HasId {
 
     @Id
     private long id;
