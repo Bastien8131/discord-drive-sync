@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/messages/content")
+@RequestMapping("/api/messages/contents")
 public class CoreContentController {
 
     private final CoreContentServices coreContentServices;

@@ -6,6 +6,7 @@ import fr.bastienbories.discorddrivesync.drive.model.dto.DriveFileDto;
 import java.util.List;
 
 public record CoreContentDto(
+        long id,
         String text,
         Long authorId,
         List<Long> reposterIds,

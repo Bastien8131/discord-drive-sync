@@ -12,5 +12,7 @@ import org.mapstruct.Mapping;
 })
 public interface DiscordMessageMapper {
     @Mapping(target = "discordChannelId", source = "discordChannel.id")
+    @Mapping(target = "contentId", source = "content.id")
+    @Mapping(target = "authorId", source = "author.id")
     DiscordMessageDto discordMessageToDiscordMessageDto(DiscordMessage discordMessage);
 }

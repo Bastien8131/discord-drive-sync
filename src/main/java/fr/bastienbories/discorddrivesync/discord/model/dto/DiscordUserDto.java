@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public record DiscordUserDto(
+        long id,
         String name,
         String globalName,
         String effectiveName,
