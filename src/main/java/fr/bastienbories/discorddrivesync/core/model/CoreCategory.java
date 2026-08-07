@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordCategory;
 import jakarta.persistence.*;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Category")
-public class CoreCategory {
+public class CoreCategory implements HasIdAndName {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
+import fr.bastienbories.discorddrivesync.common.HasId;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "CoreContent")
-public class CoreContent {
+public class CoreContent implements HasId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

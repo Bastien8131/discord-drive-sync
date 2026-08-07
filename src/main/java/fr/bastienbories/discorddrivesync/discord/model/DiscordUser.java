@@ -1,6 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
-import fr.bastienbories.discorddrivesync.common.HasId;
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "DiscordUser")
-public class DiscordUser implements HasId {
+public class DiscordUser implements HasIdAndName {
 
     @Id
     private long id;

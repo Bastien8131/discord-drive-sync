@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "DriveFile")
-public class DriveFile {
+public class DriveFile implements HasIdAndName {
 
     @Id
     private long id;

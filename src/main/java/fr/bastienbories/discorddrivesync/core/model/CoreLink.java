@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
+import fr.bastienbories.discorddrivesync.common.HasId;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -8,7 +9,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "Link")
-public class CoreLink {
+public class CoreLink implements HasId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,7 +48,7 @@ public class CoreLink {
         return getClass().hashCode();
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 

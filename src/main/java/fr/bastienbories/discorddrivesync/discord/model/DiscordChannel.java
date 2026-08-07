@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -8,7 +9,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "DiscordChannel")
-public class DiscordChannel {
+public class DiscordChannel implements HasIdAndName {
 
     @Id
     private long id;

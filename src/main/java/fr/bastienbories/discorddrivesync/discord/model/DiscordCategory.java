@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "DiscordCategory")
-public class DiscordCategory {
+public class DiscordCategory implements HasIdAndName {
 
     @Id
     private long id;
@@ -36,5 +37,10 @@ public class DiscordCategory {
 
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

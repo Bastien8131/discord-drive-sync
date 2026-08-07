@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
@@ -9,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Label")
-public class CoreLabel {
+public class CoreLabel implements HasIdAndName {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
