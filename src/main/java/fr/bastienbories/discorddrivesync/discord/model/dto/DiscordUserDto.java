@@ -1,4 +1,20 @@
 package fr.bastienbories.discorddrivesync.discord.model.dto;
 
-public record DiscordUserDto(String name) {
+import java.time.OffsetDateTime;
+import java.util.List;
+
+public record DiscordUserDto(
+        String name,
+        String globalName,
+        String effectiveName,
+        String nickname,
+        String avatarUrl,
+        OffsetDateTime accountCreatedAt,
+        OffsetDateTime joinedAt,
+        int colorRaw,
+        List<Long> repostedContentIds,
+        boolean isBot,
+        boolean isOwner,
+        boolean isPending
+        ) {
 }

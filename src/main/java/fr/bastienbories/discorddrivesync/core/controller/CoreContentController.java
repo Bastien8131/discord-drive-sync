@@ -22,14 +22,14 @@ public class CoreContentController {
         this.coreContentMapper = coreContentMapper;
     }
 
-    @GetMapping("{id}")
+    @GetMapping(value = "{id}")
     @Transactional(readOnly = true)
     public CoreContentDto getDataById(@PathVariable long id){
         CoreContent coreContent = coreContentServices.getById(id).orElseThrow(() -> new CoreContentNotFoundException(id));
         return coreContentMapper.coreContentToCoreContentDto(coreContent);
     }
 
-    @GetMapping("")
+    @GetMapping(value = "")
     @Transactional(readOnly = true)
     public List<CoreContentDto> getData(
             @RequestParam(name = "categoryId", required = false) List<Long> categoryIds,
