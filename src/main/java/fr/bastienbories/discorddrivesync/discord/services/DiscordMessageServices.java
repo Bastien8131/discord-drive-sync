@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,5 +54,29 @@ public class DiscordMessageServices {
 
     public boolean dataExistsInSomeChannel(CoreContent coreContent) {
         return discordMessageRepository.existsByContent(coreContent);
+    }
+
+    public List<DiscordMessage> getByAuthorId(long id) {
+        return discordMessageRepository.findAllByAuthor_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordChannelId(long id) {
+        return discordMessageRepository.findAllByDiscordChannel_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryId(long id) {
+        return discordMessageRepository.findAllByDiscordChannel_DiscordCategory_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryName(String name) {
+        return discordMessageRepository.findAllByDiscordChannel_DiscordCategory_Name(name);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryIdOrName(long id, String name) {
+        if (id != -1){
+            return getByDiscordCategoryId(id);
+        }else{
+            return getByDiscordCategoryName(name);
+        }
     }
 }

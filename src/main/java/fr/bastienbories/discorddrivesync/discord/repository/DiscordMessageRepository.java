@@ -10,4 +10,13 @@ public interface DiscordMessageRepository extends JpaRepository<DiscordMessage, 
     List<DiscordMessage> getAllByContent(CoreContent coreContent);
 
     boolean existsByContent(CoreContent coreContent);
+
+    List<DiscordMessage> findAllByAuthor_Id(long authorId);
+
+    List<DiscordMessage> findAllByDiscordChannel_Id(long discordChannelId);
+
+    List<DiscordMessage> findAllByDiscordChannel_DiscordCategory_Id(long discordChannelDiscordCategoryId);
+
+    List<DiscordMessage> findAllByDiscordChannel_DiscordCategory_Name(String discordChannelDiscordCategoryName);
+
 }

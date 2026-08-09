@@ -28,4 +28,28 @@ public class DiscordMessageController {
         DiscordMessage discordMessage = discordMessageServices.getById(id).orElseThrow(() -> new DiscordMessageNotFoundException(id));
         return discordMessageMapper.discordMessageToDiscordMessageDto(discordMessage);
     }
+
+    @GetMapping(value = "/author/{id}")
+    @Transactional(readOnly = true)
+    public List<DiscordMessageDto> getMessagesByAuthorId(@PathVariable long id){
+        List<DiscordMessage> discordMessages = discordMessageServices.getByAuthorId(id);
+        return discordMessageMapper.discordMessageListToDiscordMessageDtoList(discordMessages);
+    }
+
+    @GetMapping(value = "/discordChannel/{id}")
+    @Transactional(readOnly = true)
+    public List<DiscordMessageDto> getMessagesByDiscordChannelId(@PathVariable long id){
+        List<DiscordMessage> discordMessages = discordMessageServices.getByDiscordChannelId(id);
+        return discordMessageMapper.discordMessageListToDiscordMessageDtoList(discordMessages);
+    }
+
+    @GetMapping(value = "/discordCategory")
+    @Transactional(readOnly = true)
+    public List<DiscordMessageDto> getMessagesByDiscordCategoryId(
+            @RequestParam(name = "id", required = false, defaultValue = "-1") long id,
+            @RequestParam(name = "name", required = false) String name
+    ){
+        List<DiscordMessage> discordMessages = discordMessageServices.getByDiscordCategoryIdOrName(id, name);
+        return discordMessageMapper.discordMessageListToDiscordMessageDtoList(discordMessages);
+    }
 }
