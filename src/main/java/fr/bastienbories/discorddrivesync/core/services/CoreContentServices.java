@@ -82,4 +82,16 @@ public class CoreContentServices {
     public Optional<CoreContent> getById(long id) {
         return coreContentRepository.findById(id);
     }
+
+    public List<CoreContent> getAllByAuthorId(long id) {
+        return coreContentRepository.findAllByAuthor_Id(id);
+    }
+
+    public Optional<CoreContent> getByDiscordMessageId(long id) {
+        return coreContentRepository.findByDiscordMessages_Id(id);
+    }
+
+    public List<CoreContent> getAllByReposterId(List<Long> ids) {
+        return coreContentRepository.findAllByReposterIds(ids);
+    }
 }

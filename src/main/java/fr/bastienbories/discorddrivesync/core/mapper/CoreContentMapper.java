@@ -19,6 +19,7 @@ public interface CoreContentMapper extends EntityReferenceMapper {
     @Mapping(target = "authorId", source = "author.id")
     @Mapping(target = "reposterIds", source = "reposters", qualifiedByName = "toId")
     @Mapping(target = "discordMessageIds", source = "discordMessages", qualifiedByName = "toId")
+    @Mapping(target = "labelIds", source = "labels", qualifiedByName = "toId")
     CoreContentDto coreContentToCoreContentDto(CoreContent coreContent);
 
     List<CoreContentDto> coreContentListToCoreContentDtoList(List<CoreContent> coreContentList);

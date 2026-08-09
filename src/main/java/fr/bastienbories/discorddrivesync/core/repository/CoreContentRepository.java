@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CoreContentRepository extends JpaRepository<CoreContent, Long> {
     boolean existsByText(String text);
@@ -27,4 +28,15 @@ public interface CoreContentRepository extends JpaRepository<CoreContent, Long> 
             "where c.id in :categoryIds " +
             "and cl.id in :labelIds")
     List<CoreContent> findAllByCoreLabelsIdsAndCoreCategoryIds(List<Long> labelIds, List<Long> categoryIds);
+
+    List<CoreContent> findByAuthor_Id(long authorId);
+
+    List<CoreContent> findAllByAuthor_Id(long authorId);
+
+    Optional<CoreContent> findByDiscordMessages_Id(long discordMessageId);
+
+    @Query("select distinct cc from CoreContent cc " +
+            "join cc.reposters r " +
+            "where r.id in :ids")
+    List<CoreContent> findAllByReposterIds(@Param("ids") List<Long> ids);
 }
