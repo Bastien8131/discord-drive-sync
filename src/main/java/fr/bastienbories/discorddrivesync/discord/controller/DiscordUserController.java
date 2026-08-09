@@ -4,6 +4,7 @@ import fr.bastienbories.discorddrivesync.discord.exception.DiscordUserNotFoundEx
 import fr.bastienbories.discorddrivesync.discord.mapper.DiscordUserMapper;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordUserDto;
+import fr.bastienbories.discorddrivesync.discord.model.dto.DiscordUserSummaryDto;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordUserServices;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +35,8 @@ public class DiscordUserController {
 
     @GetMapping(value = "")
     @Transactional(readOnly = true)
-    public List<DiscordUserDto> getAllUsers(){
+    public List<DiscordUserSummaryDto> getAllUsers(){
         List<DiscordUser> discordUsers = discordUserServices.getAll();
-        return discordUserMapper.discordUserListToDiscordUserDtoList(discordUsers);
+        return discordUserMapper.discordUserListToDiscordUserSummaryDtoList(discordUsers);
     }
 }
