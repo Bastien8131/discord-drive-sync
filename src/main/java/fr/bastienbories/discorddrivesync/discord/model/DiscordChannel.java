@@ -5,8 +5,6 @@ import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 
-import java.util.Objects;
-
 @Entity
 @Table(name = "DiscordChannel")
 public class DiscordChannel implements HasIdAndName {

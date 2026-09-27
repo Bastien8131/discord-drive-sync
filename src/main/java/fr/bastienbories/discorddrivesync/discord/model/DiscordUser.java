@@ -46,6 +46,7 @@ public class DiscordUser implements HasIdAndName {
 
     protected DiscordUser() {}
 
+    @SuppressWarnings("deprecation")
     public DiscordUser(Member member){
         User user = member.getUser();
         this.id = member.getIdLong();

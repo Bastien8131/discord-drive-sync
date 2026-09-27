@@ -5,8 +5,8 @@ import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.repository.CoreContentRepository;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +17,7 @@ import java.util.Optional;
 @Transactional
 public class CoreContentServices {
 
-    private static final Logger log = LoggerFactory.getLogger(CoreContentServices.class);
+    // private static final Logger log = LoggerFactory.getLogger(CoreContentServices.class);
 
     private final CoreContentRepository coreContentRepository;
 

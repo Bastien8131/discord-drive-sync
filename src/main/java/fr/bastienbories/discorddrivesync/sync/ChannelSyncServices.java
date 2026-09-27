@@ -11,13 +11,10 @@ import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordCategoryServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import org.apache.juli.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Transactional

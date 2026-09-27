@@ -1,9 +1,21 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
-import fr.bastienbories.discorddrivesync.sync.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import fr.bastienbories.discorddrivesync.common.LogMessages;
+import fr.bastienbories.discorddrivesync.sync.CategorySyncServices;
+import fr.bastienbories.discorddrivesync.sync.ChannelSyncServices;
+import fr.bastienbories.discorddrivesync.sync.CommentSyncServices;
+import fr.bastienbories.discorddrivesync.sync.MessageSyncServices;
+import fr.bastienbories.discorddrivesync.sync.UserSyncServices;
 import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
@@ -13,18 +25,12 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 @Service
 public class DiscordBotServices extends ListenerAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(DiscordBotServices.class);
 
     private final CategorySyncServices categorySyncServices;
     private final ChannelSyncServices channelSyncServices;
@@ -77,6 +83,7 @@ public class DiscordBotServices extends ListenerAdapter {
             case ChannelType.CATEGORY -> categorySyncServices.createCategoryFromDiscord(event.getChannel().asCategory());
             case ChannelType.TEXT -> channelSyncServices.createChannelFromDiscord(event.getChannel().asTextChannel());
             case ChannelType.VOICE -> CompletableFuture.runAsync(userSyncServices::updateUserTable, discordTaskExecutor);
+            default -> LogMessages.enumTypeIsNotExpected(log, ChannelType.class, event.getChannelType(), "onChannelCreate");
         }
 
     }
@@ -87,6 +94,7 @@ public class DiscordBotServices extends ListenerAdapter {
         switch (event.getChannelType()){
             case ChannelType.CATEGORY -> categorySyncServices.deleteCategoryFromDiscord(event.getChannel().asCategory());
             case ChannelType.TEXT -> channelSyncServices.deleteChannelFromDiscord(event.getChannel().asTextChannel());
+            default -> LogMessages.enumTypeIsNotExpected(log, ChannelType.class, event.getChannelType(), "onChannelDelete");
         }
     }
 

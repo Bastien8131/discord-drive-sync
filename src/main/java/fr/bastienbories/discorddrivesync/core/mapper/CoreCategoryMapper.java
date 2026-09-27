@@ -1,15 +1,12 @@
 package fr.bastienbories.discorddrivesync.core.mapper;
 
 import fr.bastienbories.discorddrivesync.core.model.CoreCategory;
-import fr.bastienbories.discorddrivesync.core.model.dto.CoreCategoryDto;
 import fr.bastienbories.discorddrivesync.core.model.dto.CoreCategoryDtoWithLabelsDto;
-import fr.bastienbories.discorddrivesync.core.model.dto.CoreLabelDto;
 import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {CoreLabelMapper.class})

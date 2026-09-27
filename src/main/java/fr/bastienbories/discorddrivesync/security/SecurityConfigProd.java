@@ -19,7 +19,7 @@ public class SecurityConfigProd {
                         .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults()) //acceptable as a temporary configuration, but the Angular front end will need to be replaced with JWT authentication.
-                .csrf(AbstractHttpConfigurer::disable);
+                .csrf(csrf -> csrf.disable());
         return http.build();
     }
 }

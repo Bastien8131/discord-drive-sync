@@ -3,7 +3,6 @@ package fr.bastienbories.discorddrivesync.core.controller;
 import fr.bastienbories.discorddrivesync.core.exception.CategoryNotFoundException;
 import fr.bastienbories.discorddrivesync.core.mapper.CoreCategoryMapper;
 import fr.bastienbories.discorddrivesync.core.model.CoreCategory;
-import fr.bastienbories.discorddrivesync.core.model.dto.CoreCategoryDto;
 import fr.bastienbories.discorddrivesync.core.model.dto.CoreCategoryDtoWithLabelsDto;
 import fr.bastienbories.discorddrivesync.core.services.CoreCategoryServices;
 import org.springframework.web.bind.annotation.*;

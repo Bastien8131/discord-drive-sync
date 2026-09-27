@@ -18,11 +18,9 @@ import java.util.concurrent.CompletableFuture;
 public class DriveFileController {
 
     private final DriveFileServices driveFileServices;
-    private final DriveFileMapper driveFileMapper;
 
-    public DriveFileController(DriveFileServices driveFileServices, DriveFileMapper driveFileMapper) {
+    public DriveFileController(DriveFileServices driveFileServices) {
         this.driveFileServices = driveFileServices;
-        this.driveFileMapper = driveFileMapper;
     }
 
     @GetMapping("/{shareToken}")
