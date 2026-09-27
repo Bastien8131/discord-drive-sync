@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,13 +30,11 @@ public class S3SyncServices {
     private static final Logger log = LoggerFactory.getLogger(S3SyncServices.class);
 
     private final S3AsyncClient s3AsyncClient;
-    private final ExecutorService executorService;
 
     private final DriveFileServices driveFileServices;
 
-    public S3SyncServices(S3AsyncClient s3AsyncClient, ExecutorService executorService, DriveFileServices driveFileServices) {
+    public S3SyncServices(S3AsyncClient s3AsyncClient, DriveFileServices driveFileServices) {
         this.s3AsyncClient = s3AsyncClient;
-        this.executorService = executorService;
         this.driveFileServices = driveFileServices;
     }
 
