@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,13 +30,11 @@ public class S3SyncServices {
     private static final Logger log = LoggerFactory.getLogger(S3SyncServices.class);
 
     private final S3AsyncClient s3AsyncClient;
-    private final ExecutorService executorService;
 
     private final DriveFileServices driveFileServices;
 
-    public S3SyncServices(S3AsyncClient s3AsyncClient, ExecutorService executorService, DriveFileServices driveFileServices) {
+    public S3SyncServices(S3AsyncClient s3AsyncClient, DriveFileServices driveFileServices) {
         this.s3AsyncClient = s3AsyncClient;
-        this.executorService = executorService;
         this.driveFileServices = driveFileServices;
     }
 
@@ -48,7 +45,7 @@ public class S3SyncServices {
         );
     }
 
-    public CompletableFuture<List<DriveFile>> getFilesFromMessageAndUpload(Message message, DiscordUser discordUser) {
+    public CompletableFuture<List<DriveFile>> getFilesFromMessageAndUpload(Message message, DiscordUser uploader) {
         List<Attachment> attachments = message.getAttachments();
         List<CompletableFuture<Optional<DriveFile>>> driveFiles = new ArrayList<>();
 
@@ -71,7 +68,7 @@ public class S3SyncServices {
                     attachment.getIdLong(),
                     attachment.getFileName(),
                     path,
-                    discordUser
+                    uploader
             ))).exceptionally(ex -> {
                 LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
                 return Optional.empty();
@@ -91,14 +88,14 @@ public class S3SyncServices {
     }
 
     public CompletableFuture<DeleteObjectResponse> delete(DriveFile driveFile) {
-        return s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getPath()));
+        return s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getStorageKey()));
     }
 
     public CompletableFuture<List<DeleteObjectResponse>> deleteMultipleFiles(List<DriveFile> driveFiles) {
         List<CompletableFuture<DeleteObjectResponse>> deleteObjs = new ArrayList<>();
 
         for (DriveFile driveFile : driveFiles) {
-            CompletableFuture<DeleteObjectResponse> deleteObject = s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getPath()).build())
+            CompletableFuture<DeleteObjectResponse> deleteObject = s3AsyncClient.deleteObject(req -> req.bucket("discord-drive-sync").key(driveFile.getStorageKey()).build())
                     .thenApply(deleteObjectResponse -> {
                 try {
                     driveFileServices.delete(driveFile);

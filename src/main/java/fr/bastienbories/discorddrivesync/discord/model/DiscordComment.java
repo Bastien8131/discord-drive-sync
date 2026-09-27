@@ -1,27 +1,28 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "DiscordComment")
-@PrimaryKeyJoinColumn(name = "idDiscordComment")
+@PrimaryKeyJoinColumn(name = "id")
 @DiscriminatorValue("DISCORD_COMMENT")
 public class DiscordComment extends DiscordMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDiscordMessage")
+    @JoinColumn(name = "idDiscordReferencedMessage")
     private DiscordMessage discordReferencedMessage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idFile")
-    private DriveFile driveFile;
+    private DriveFile file;
 
     protected DiscordComment() {}
 
-    public DiscordComment(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel, DiscordMessage discordReferencedMessage, DriveFile driveFile) {
-        super(idDiscordMessage, discordMessageData, discordUser, discordChannel);
+    public DiscordComment(long id, CoreContent content, DiscordUser author, DiscordChannel discordChannel, DiscordMessage discordReferencedMessage, DriveFile file) {
+        super(id, content, author, discordChannel);
         this.discordReferencedMessage = discordReferencedMessage;
-        this.driveFile = driveFile;
+        this.file = file;
     }
 }

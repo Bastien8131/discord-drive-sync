@@ -88,9 +88,9 @@ public class DiscordApiServices {
 
         CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(messages.toArray(new CompletableFuture[messages.size()]));
         return allFuturesResult.thenApply(v ->
-                messages.stream().
-                        map(CompletableFuture::join).
-                        collect(Collectors.<Message>toList())
+                messages.stream()
+                        .map(future -> future.join())
+                        .collect(Collectors.toList())
         );
     }
 
@@ -109,9 +109,9 @@ public class DiscordApiServices {
 
         CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(messages.toArray(new CompletableFuture[messages.size()]));
         return allFuturesResult.thenApply(v ->
-                messages.stream().
-                        map(CompletableFuture::join).
-                        collect(Collectors.<Message>toList())
+                messages.stream()
+                        .map(future -> future.join())
+                        .collect(Collectors.<Message>toList())
         );
     }
 
@@ -135,5 +135,10 @@ public class DiscordApiServices {
     public void deleteMessage(Message message) {
         botDeletedMessageIds.add(message.getIdLong());
         Objects.requireNonNull(guild.getTextChannelById(message.getChannelId())).deleteMessageById(message.getId()).queue();
+    }
+
+    public void deleteChannel(TextChannel channel){
+        botDeletedChannelIds.add(channel.getIdLong());
+        Objects.requireNonNull(guild.getTextChannelById(channel.getIdLong())).delete().queue();
     }
 }

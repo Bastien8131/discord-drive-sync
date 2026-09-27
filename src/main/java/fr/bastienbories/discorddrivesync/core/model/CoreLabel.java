@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import jakarta.persistence.*;
@@ -9,11 +10,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "Label")
-public class CoreLabel {
+public class CoreLabel implements HasIdAndName {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idLabel;
+    private long id;
 
     @Column(unique = true)
     private String name;
@@ -25,10 +26,15 @@ public class CoreLabel {
     private List<CoreCategory> categories;
 
     @ManyToMany(mappedBy = "labels")
-    private List<DriveFile> driveFiles;
+    private List<DriveFile> files;
 
-    @ManyToMany(mappedBy = "labels")
-    private List<CoreMessage> messages;
+    @ManyToMany
+    @JoinTable(
+            name = "ASSOCIATE",
+            joinColumns = @JoinColumn(name = "idLabel"),
+            inverseJoinColumns = @JoinColumn(name = "idCoreContent")
+    )
+    private List<CoreContent> associatedContents;
 
     protected CoreLabel() {}
 
@@ -36,16 +42,16 @@ public class CoreLabel {
         this.name = name;
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
-        this.driveFiles = new ArrayList<>();
-        this.messages = new ArrayList<>();
+        this.files = new ArrayList<>();
+        this.associatedContents = new ArrayList<>();
     }
 
     public CoreLabel(DiscordChannel discordChannel) {
         this.name = discordChannel.getName();
         this.discordChannels = new ArrayList<>();
         this.categories = new ArrayList<>();
-        this.driveFiles = new ArrayList<>();
-        this.messages = new ArrayList<>();
+        this.files = new ArrayList<>();
+        this.associatedContents = new ArrayList<>();
 
         this.discordChannels.add(discordChannel);
     }
@@ -53,7 +59,7 @@ public class CoreLabel {
     @Override
     public String toString() {
         return "Label{" +
-                "idLabel=" + idLabel +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
     }
@@ -62,10 +68,10 @@ public class CoreLabel {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (idLabel == 0) return false;
+        if (id == 0) return false;
 
         CoreLabel coreLabel = (CoreLabel) o;
-        return idLabel == coreLabel.idLabel;
+        return id == coreLabel.id;
     }
 
     @Override
@@ -74,10 +80,17 @@ public class CoreLabel {
     }
 
     public long getId() {
-        return idLabel;
+        return id;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void addCoreContent(CoreContent coreContent) {
+        if (!associatedContents.contains(coreContent)) {
+            associatedContents.add(coreContent);
+            coreContent.addLabel(this);
+        }
     }
 }

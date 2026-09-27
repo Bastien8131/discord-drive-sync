@@ -1,9 +1,9 @@
 package fr.bastienbories.discorddrivesync.core.services;
 
 import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.repository.CoreLinkRepository;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,15 +29,15 @@ public class CoreLinkServices {
         return coreLinkRepository.findByUrl(url);
     }
 
-    public List<CoreLink> getOrCreateLinks(String content, DiscordMessageData discordMessageData) {
+    public List<CoreLink> getOrCreateLinks(String text, CoreContent coreContent) {
         List<CoreLink> coreLinks = new ArrayList<>();
 
-        for (String link : TextUtils.getLinkFromContent(content)){
+        for (String link : TextUtils.getLinkFromContent(text)){
             coreLinks.add(findByUrl(link).map(coreLink -> {
-                coreLink.addDiscordMessageData(discordMessageData);
+                coreLink.addCoreContent(coreContent);
                 return coreLink;
             }).orElseGet(() -> {
-                CoreLink coreLink = new CoreLink(link, discordMessageData);
+                CoreLink coreLink = new CoreLink(link, coreContent);
                 coreLinkRepository.save(coreLink);
                 return coreLink;
             }));

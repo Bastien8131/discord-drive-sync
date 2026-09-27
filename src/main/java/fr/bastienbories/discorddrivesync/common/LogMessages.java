@@ -1,7 +1,8 @@
 package fr.bastienbories.discorddrivesync.common;
 
-import org.slf4j.Logger;
 import java.util.List;
+
+import org.slf4j.Logger;
 
 public final class LogMessages {
 
@@ -19,6 +20,10 @@ public final class LogMessages {
 
     public static void notFoundInTheList(Logger log, Class<?> entityClass, long id, List<?> list) {
         log.warn("{} with id {} was not found in the list (size: {})", entityClass.getSimpleName(), id, list.size());
+    }
+
+    public static void enumTypeIsNotExpected(Logger log, Class<?> enumClass, Enum<?> enumType, String eventName) {
+        log.warn("{}.{} on {} is not expected", enumClass.getSimpleName(), enumType.name(), eventName);
     }
 
     //Error

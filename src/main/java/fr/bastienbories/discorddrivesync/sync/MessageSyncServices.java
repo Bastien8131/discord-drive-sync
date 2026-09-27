@@ -1,13 +1,13 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
-import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
+import fr.bastienbories.discorddrivesync.core.services.CoreContentServices;
+import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
-import fr.bastienbories.discorddrivesync.core.services.CoreMessageServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.discord.services.*;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
@@ -34,23 +34,23 @@ public class MessageSyncServices {
 
     private final DiscordUserServices discordUserServices;
     private final DiscordChannelServices discordChannelServices;
-    private final DiscordMessageDataServices discordMessageDataServices;
+    private final CoreContentServices coreContentServices;
     private final DiscordMessageServices discordMessageServices;
 
-    private final CoreMessageServices coreMessageServices;
     private final CoreLinkServices coreLinkServices;
+    private final CoreLabelServices coreLabelServices;
 
     private final DriveFileServices driveFileServices;
     private final S3SyncServices s3SyncServices;
 
-    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, DiscordMessageDataServices discordMessageDataServices, DiscordMessageServices discordMessageServices, CoreMessageServices coreMessageServices, CoreLinkServices coreLinkServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
+    public MessageSyncServices(DiscordApiServices discordApiServices, DiscordUserServices discordUserServices, DiscordChannelServices discordChannelServices, CoreContentServices coreContentServices, DiscordMessageServices discordMessageServices, CoreLinkServices coreLinkServices, CoreLabelServices coreLabelServices, DriveFileServices driveFileServices, S3SyncServices s3SyncServices) {
         this.discordApiServices = discordApiServices;
         this.discordUserServices = discordUserServices;
         this.discordChannelServices = discordChannelServices;
-        this.discordMessageDataServices = discordMessageDataServices;
+        this.coreContentServices = coreContentServices;
         this.discordMessageServices = discordMessageServices;
-        this.coreMessageServices = coreMessageServices;
         this.coreLinkServices = coreLinkServices;
+        this.coreLabelServices = coreLabelServices;
         this.driveFileServices = driveFileServices;
         this.s3SyncServices = s3SyncServices;
     }
@@ -82,6 +82,11 @@ public class MessageSyncServices {
             }
         }
 
+        //resolve label ids now, while the session is still open (the DiscordChannel proxy will be detached once the async callbacks run)
+        List<Long> discordChannelTargetLabelIds = discordChannelTargetsList.stream()
+                .map(discordChannel -> discordChannel.getLabel().getId())
+                .toList();
+
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
@@ -90,37 +95,30 @@ public class MessageSyncServices {
                     discordApiServices.deleteMessage(message);
 
                     //create data obj or fetch from db if alrady exsist
-                    DiscordMessageData discordMessageData;
-                    String content = TextUtils.removeLinkFromContent(message.getContentRaw()).toString();
-                    content = TextUtils.removeNewLines(content).toString();
-                    content = TextUtils.removeChannelTagFromContent(content);
+                    CoreContent coreContent = coreContentServices.getOrCreateAndAddDriveFiles(discordUser, message.getContentRaw(), driveFiles);
 
-                    if (discordMessageDataServices.dataAlreadyExists(content)){
-                        discordMessageData = discordMessageDataServices.findByContent(content);
-                    } else {
-                        discordMessageData = new DiscordMessageData(content);
-                        discordMessageDataServices.save(discordMessageData);
+                    //tag the content with the label of every channel it is broadcast to
+                    for (Long labelId : discordChannelTargetLabelIds) {
+                        coreLabelServices.addCoreContent(labelId, coreContent);
                     }
 
-                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), discordMessageData);
+                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), coreContent);
 
-                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, content, driveFiles, links).thenAccept(botMessages -> {
+                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
 
                         for (Message botMessage : botMessages) {
                             long botMsgChannelId = botMessage.getChannelIdLong();
                             discordChannelTargetsList.stream().filter(
                                     discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
                                     discordChannel -> {
-                                        CoreMessage coreMessage = new CoreMessage(
+                                        DiscordMessage discordMessage = new DiscordMessage(
                                                 botMessage.getIdLong(),
-                                                discordMessageData,
+                                                coreContent,
                                                 discordUser,
                                                 discordChannel
                                         );
 
-                                        coreMessage.setDriveFiles(driveFiles);
-                                        coreMessage.addLabel(discordChannelSource.getLabel());
-                                        coreMessageServices.save(coreMessage);
+                                        discordMessageServices.save(discordMessage);
                                     },
                                     () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
                             );
@@ -145,11 +143,16 @@ public class MessageSyncServices {
         if (discordApiServices.thisMessageIsDeleteByBot(event.getMessageIdLong())) return;
 
         long messageId = event.getMessageIdLong();
-        coreMessageServices.getById(messageId).ifPresentOrElse(coreMessage -> {
-            driveFileServices.findByContainingOnlyThisCoreMessage(coreMessage).ifPresentOrElse(driveFiles -> {
-                coreMessageServices.delete(coreMessage);
-                s3SyncServices.deleteMultipleFiles(driveFiles);
-            },() -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreMessage.class, coreMessage.getId()));
-        }, () -> LogMessages.notFoundInDatabase(log, CoreMessage.class, messageId));
+        discordMessageServices.getById(messageId).ifPresentOrElse(discordMessage -> {
+            CoreContent coreContent = discordMessage.getContent();
+            discordMessageServices.delete(discordMessage);
+
+            if (!discordMessageServices.dataExistsInSomeChannel(coreContent)) {
+                driveFileServices.findByCoreContent(coreContent).ifPresentOrElse(
+                        s3SyncServices::deleteMultipleFiles,
+                        () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreContent.class, coreContent.getId())
+                );
+            }
+        }, () -> LogMessages.notFoundInDatabase(log, DiscordMessage.class, messageId));
     }
 }

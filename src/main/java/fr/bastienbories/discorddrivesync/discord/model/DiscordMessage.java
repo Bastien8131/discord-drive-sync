@@ -1,5 +1,7 @@
 package fr.bastienbories.discorddrivesync.discord.model;
 
+import fr.bastienbories.discorddrivesync.common.HasId;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import jakarta.persistence.*;
 
 @Entity
@@ -7,18 +9,18 @@ import jakarta.persistence.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
 @DiscriminatorValue("DISCORD_MESSAGE")
-public class DiscordMessage {
+public class DiscordMessage implements HasId {
 
     @Id
-    private long idDiscordMessage;
+    private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idDiscordMessageData")
-    private DiscordMessageData discordMessageData;
+    @JoinColumn(name = "idCoreContent")
+    private CoreContent content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser")
-    private DiscordUser discordUser;
+    private DiscordUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordChannel")
@@ -26,26 +28,28 @@ public class DiscordMessage {
 
     protected DiscordMessage() {}
 
-    public DiscordMessage(long idDiscordMessage, DiscordMessageData discordMessageData, DiscordUser discordUser, DiscordChannel discordChannel) {
-        this.idDiscordMessage = idDiscordMessage;
-        this.discordMessageData = discordMessageData;
-        this.discordUser = discordUser;
+    public DiscordMessage(long id, CoreContent content, DiscordUser author, DiscordChannel discordChannel) {
+        this.id = id;
+        this.content = content;
+        this.author = author;
         this.discordChannel = discordChannel;
     }
 
     @Override
     public String toString() {
         return "DiscordMessage{" +
-                "idDiscordMessage=" + idDiscordMessage +
+                "id=" + id +
                 '}';
     }
 
     public long getId() {
-        return idDiscordMessage;
+        return id;
     }
 
-    public DiscordMessageData getDiscordMessageData() {
-        return discordMessageData;
+    public DiscordUser getAuthor() {return author;}
+
+    public CoreContent getContent() {
+        return content;
     }
 
     public DiscordChannel getDiscordChannel() {

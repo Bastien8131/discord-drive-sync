@@ -2,7 +2,7 @@
   <configuration default="false" name="DDS-dev" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="envFilePaths">
-      <option value="$USER_HOME$/Dev/discord-drive-sync/.env" />
+      <option value="$USER_HOME$/Projets/discord-drive-sync/.env" />
     </option>
     <module name="discord-drive-sync" />
     <selectedOptions>

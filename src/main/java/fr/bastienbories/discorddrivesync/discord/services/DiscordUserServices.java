@@ -28,23 +28,10 @@ public class DiscordUserServices {
 
         for (Member member: members){
             if (member.getIdLong() != botId){
-                users.add(new DiscordUser(member.getIdLong(), member.getUser().getEffectiveName()));
+                users.add(new DiscordUser(member));
             }
         }
         return users;
-    }
-
-    public DiscordUser addUser(long id, String name) {
-        DiscordUser user = new DiscordUser(id, name);
-        return discordUserRepository.save(user);
-    }
-
-    public void addUsers(List<Member> members){
-        List<DiscordUser> users = new ArrayList<>();
-        for (Member member: members){
-            users.add(new DiscordUser(member.getIdLong(), member.getUser().getEffectiveName()));
-        }
-        discordUserRepository.saveAll(users);
     }
 
     public void updateTable() {
@@ -63,5 +50,9 @@ public class DiscordUserServices {
             return getById(id);
         }
         return user;
+    }
+
+    public List<DiscordUser> getAll() {
+        return discordUserRepository.findAll();
     }
 }

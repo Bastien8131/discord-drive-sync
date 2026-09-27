@@ -1,6 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.model;
 
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
+import fr.bastienbories.discorddrivesync.common.HasId;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -9,11 +9,11 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "Link")
-public class CoreLink {
+public class CoreLink implements HasId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idLink;
+    private long id;
 
     @Column(unique = true, nullable = false, columnDefinition = "TEXT")
     private String url;
@@ -22,16 +22,16 @@ public class CoreLink {
     @JoinTable(
             name = "CONTAIN",
             joinColumns = @JoinColumn(name = "idLink"),
-            inverseJoinColumns = @JoinColumn(name = "idDiscordMessageData")
+            inverseJoinColumns = @JoinColumn(name = "idCoreContent")
     )
-    private List<DiscordMessageData> discordMessageDataList;
+    private List<CoreContent> referencedInContents;
 
     protected CoreLink() {}
 
-    public CoreLink(String url, DiscordMessageData discordMessageData) {
+    public CoreLink(String url, CoreContent coreContent) {
         this.url = url;
-        this.discordMessageDataList = new ArrayList<>();
-        addDiscordMessageData(discordMessageData);
+        this.referencedInContents = new ArrayList<>();
+        addCoreContent(coreContent);
     }
 
     @Override
@@ -48,17 +48,17 @@ public class CoreLink {
         return getClass().hashCode();
     }
 
-    public Long getId() {
-        return idLink;
+    public long getId() {
+        return id;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void addDiscordMessageData(DiscordMessageData discordMessageData){
-        discordMessageDataList.add(discordMessageData);
-        discordMessageData.addLink(this);
+    public void addCoreContent(CoreContent coreContent){
+        referencedInContents.add(coreContent);
+        coreContent.addLink(this);
 
     }
 }

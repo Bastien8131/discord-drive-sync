@@ -1,9 +1,8 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessageData;
 import fr.bastienbories.discorddrivesync.discord.repository.DiscordMessageRepository;
-import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import net.dv8tion.jda.api.entities.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +14,7 @@ import java.util.Optional;
 @Transactional
 public class DiscordMessageServices {
 
-    public final DiscordMessageRepository discordMessageRepository;
+    private final DiscordMessageRepository discordMessageRepository;
 
     public DiscordMessageServices(DiscordMessageRepository discordMessageRepository) {
         this.discordMessageRepository = discordMessageRepository;
@@ -40,19 +39,43 @@ public class DiscordMessageServices {
         return false;
     }
 
-    public List<DiscordMessage> getListByData(DiscordMessageData discordMessageData) {
-        return discordMessageRepository.getAllByDiscordMessageData(discordMessageData);
+    public List<DiscordMessage> getListByData(CoreContent coreContent) {
+        return discordMessageRepository.getAllByContent(coreContent);
     }
 
     public void delete(DiscordMessage discordMessage) {
         discordMessageRepository.delete(discordMessage);
     }
 
-    public Optional<DiscordMessage> getById(long messageIdLong) {
-        return discordMessageRepository.findById(messageIdLong);
+    public Optional<DiscordMessage> getById(long id) {
+        return discordMessageRepository.findById(id);
     }
 
-    public boolean dataExistsInSomeChannel(DiscordMessageData discordMessageData) {
-        return discordMessageRepository.existsByDiscordMessageData(discordMessageData);
+    public boolean dataExistsInSomeChannel(CoreContent coreContent) {
+        return discordMessageRepository.existsByContent(coreContent);
+    }
+
+    public List<DiscordMessage> getByAuthorId(long id) {
+        return discordMessageRepository.findAllByAuthor_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordChannelId(long id) {
+        return discordMessageRepository.findAllByDiscordChannel_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryId(long id) {
+        return discordMessageRepository.findAllByDiscordChannel_DiscordCategory_Id(id);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryName(String name) {
+        return discordMessageRepository.findAllByDiscordChannel_DiscordCategory_Name(name);
+    }
+
+    public List<DiscordMessage> getByDiscordCategoryIdOrName(long id, String name) {
+        if (id != -1){
+            return getByDiscordCategoryId(id);
+        }else{
+            return getByDiscordCategoryName(name);
+        }
     }
 }

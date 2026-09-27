@@ -1,7 +1,8 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
+import fr.bastienbories.discorddrivesync.common.HasIdAndName;
+import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.core.model.CoreMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.*;
 
@@ -10,23 +11,23 @@ import java.util.List;
 
 @Entity
 @Table(name = "DriveFile")
-public class DriveFile {
+public class DriveFile implements HasIdAndName {
 
     @Id
-    private long idFile;
+    private long id;
 
     private String name;
 
-    private String path;
+    private String storageKey;
 
     private String shareToken;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "idDiscordUser", nullable = false)
-    private DiscordUser discordUser;
+    private DiscordUser uploader;
 
-    @ManyToMany(mappedBy = "driveFiles")
-    private List<CoreMessage> coreMessages;
+    @ManyToMany(mappedBy = "files")
+    private List<CoreContent> attachedContents;
 
     @ManyToMany
     @JoinTable(
@@ -38,13 +39,13 @@ public class DriveFile {
 
     protected DriveFile() {}
 
-    public DriveFile(long idFile, String name, String path, DiscordUser discordUser) {
-        this.idFile = idFile;
+    public DriveFile(long id, String name, String storageKey, DiscordUser uploader) {
+        this.id = id;
         this.name = name;
-        this.path = path;
+        this.storageKey = storageKey;
         this.shareToken = generateShareToken();
-        this.discordUser = discordUser;
-        this.coreMessages = new ArrayList<>();
+        this.uploader = uploader;
+        this.attachedContents = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
@@ -58,7 +59,7 @@ public class DriveFile {
         if (o == null || getClass() != o.getClass()) return false;
 
         DriveFile driveFile = (DriveFile) o;
-        return idFile == driveFile.idFile;
+        return id == driveFile.id;
     }
 
     @Override
@@ -67,18 +68,22 @@ public class DriveFile {
     }
 
     public long getId() {
-        return idFile;
+        return id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getPath() {
-        return path;
+    public String getStorageKey() {
+        return storageKey;
     }
 
     public String getShareToken() {
         return shareToken;
+    }
+
+    public void addCoreContent(CoreContent coreContent) {
+        attachedContents.add(coreContent);
     }
 }
