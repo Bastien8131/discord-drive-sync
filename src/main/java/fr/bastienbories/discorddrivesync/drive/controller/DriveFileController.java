@@ -1,7 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.controller;
 
-import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
-import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.CompletableFuture;
+import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 
 @RestController
 @RequestMapping("api/files")
