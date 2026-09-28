@@ -13,6 +13,7 @@ import fr.bastienbories.discorddrivesync.sync.CategorySyncServices;
 import fr.bastienbories.discorddrivesync.sync.ChannelSyncServices;
 import fr.bastienbories.discorddrivesync.sync.CommentSyncServices;
 import fr.bastienbories.discorddrivesync.sync.MessageSyncServices;
+import fr.bastienbories.discorddrivesync.sync.SlashCommandSyncServices;
 import fr.bastienbories.discorddrivesync.sync.UserSyncServices;
 import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
@@ -23,6 +24,7 @@ import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -37,16 +39,23 @@ public class DiscordBotServices extends ListenerAdapter {
     private final CommentSyncServices commentSyncServices;
     private final MessageSyncServices messageSyncServices;
     private final UserSyncServices userSyncServices;
+    private final SlashCommandSyncServices slashCommandServices;
 
     private final JDA jda;
     private final Executor discordTaskExecutor;
 
-    public DiscordBotServices(CategorySyncServices categorySyncServices, ChannelSyncServices channelSyncServices, CommentSyncServices commentSyncServices, MessageSyncServices messageSyncServices, UserSyncServices userSyncServices, JDA jda, Executor discordTaskExecutor) {
+    public DiscordBotServices(
+        CategorySyncServices categorySyncServices, ChannelSyncServices channelSyncServices, 
+        CommentSyncServices commentSyncServices, MessageSyncServices messageSyncServices, 
+        UserSyncServices userSyncServices, JDA jda, Executor discordTaskExecutor,
+        SlashCommandSyncServices slashCommandServices
+    ) {
         this.categorySyncServices = categorySyncServices;
         this.channelSyncServices = channelSyncServices;
         this.commentSyncServices = commentSyncServices;
         this.messageSyncServices = messageSyncServices;
         this.userSyncServices = userSyncServices;
+        this.slashCommandServices = slashCommandServices;
         this.jda = jda;
         this.discordTaskExecutor = discordTaskExecutor;
     }
@@ -115,5 +124,17 @@ public class DiscordBotServices extends ListenerAdapter {
     public void onMessageDelete(@NonNull MessageDeleteEvent event) {
         super.onMessageDelete(event);
         messageSyncServices.deleteMessageFromDiscord(event);
+    }
+
+    /**
+     * CommandsListener
+     */
+
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        switch (event.getName()) {
+            case "upload": slashCommandServices.uploadCommand(event);
+            default: System.out.println("unknow");;
+        }
     }
 }
