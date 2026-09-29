@@ -133,8 +133,8 @@ public class DiscordBotServices extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
-            case "upload": slashCommandServices.uploadCommand(event);
-            default: System.out.println("unknow");;
+            case "upload" -> slashCommandServices.uploadCommand(event);
+            default -> System.out.println("unknow");
         }
     }
 }

@@ -5,7 +5,8 @@ import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
-import fr.bastienbories.discorddrivesync.drive.services.DriveFileUrlServices;
+import fr.bastienbories.discorddrivesync.common.PathnameTypeEnum;
+import fr.bastienbories.discorddrivesync.common.PublicUrlServices;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -30,15 +31,15 @@ public class DiscordApiServices {
     private final Set<Long> botDeletedChannelIds = ConcurrentHashMap.newKeySet();
     private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
-    private final DriveFileUrlServices driveFileUrlServices;
+    private final PublicUrlServices publicUrlServices;
 
-    public DiscordApiServices(JDA jda, DriveFileUrlServices driveFileUrlServices) throws InterruptedException {
+    public DiscordApiServices(JDA jda, PublicUrlServices publicUrlServices) throws InterruptedException {
         this.jda = jda;
         List<Guild> guilds = jda.awaitReady().getGuilds();
         this.guild = guilds.stream().findFirst().orElseThrow(
                 () -> new IllegalStateException("This bot is not associated with any server")
         );
-        this.driveFileUrlServices = driveFileUrlServices;
+        this.publicUrlServices = publicUrlServices;
     }
 
 //    private String removeChannelTag(String contentRaw){
@@ -54,7 +55,7 @@ public class DiscordApiServices {
         if (!driveFiles.isEmpty()){ contentBuild.append("\n"); }
         for (DriveFile driveFile: driveFiles){
             contentBuild.append("\n");
-            contentBuild.append(driveFileUrlServices.buildUrl(driveFile));
+            contentBuild.append(publicUrlServices.buildUrl(PathnameTypeEnum.SHARE_FILE_PATH, "", driveFile.getShareToken()));
         }
 
         if (!links.isEmpty()){ contentBuild.append("\n"); }

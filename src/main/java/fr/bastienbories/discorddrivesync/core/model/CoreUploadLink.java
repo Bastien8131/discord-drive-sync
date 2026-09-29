@@ -61,4 +61,10 @@ public class CoreUploadLink implements HasId {
     public long getId() {
         return id;
     }
+
+    public String getToken() {
+        return token;
+    }
+
+    
 }
