@@ -22,25 +22,4 @@ public class DriveFileController {
     public DriveFileController(DriveFileServices driveFileServices) {
         this.driveFileServices = driveFileServices;
     }
-
-    @GetMapping("/{shareToken}")
-    public CompletableFuture<ResponseEntity<InputStreamResource>> downloadFileByToken(@PathVariable String shareToken){
-        return driveFileServices.findByShareToken(shareToken).map(driveFile -> {
-            return driveFileServices.downloadFile(driveFile).thenApply(responseStream -> {
-                InputStreamResource resource = new InputStreamResource(responseStream);
-                HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + driveFile.getName() + "\"");
-                return ResponseEntity.ok()
-                        .headers(headers)
-                        .contentLength(responseStream.response().contentLength())
-                        .contentType(MediaType.parseMediaType(responseStream.response().contentType()))
-                        .body(resource);
-            });
-        }).orElseGet(
-            () -> {
-                return CompletableFuture.completedFuture(
-                        ResponseEntity.notFound().build()
-                );
-            }
-        );
-    }
 }

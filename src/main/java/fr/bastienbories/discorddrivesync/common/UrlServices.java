@@ -5,13 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-public class PublicUrlServices {
+public class UrlServices {
 
     private final boolean secure;
     private final String hostname;
     private final int port;
 
-    public PublicUrlServices(
+    public UrlServices(
             @Value("${server.secure-http}") boolean secure,
             @Value("${server.hostname}") String hostname,
             @Value("${server.port}") int port) {
@@ -50,7 +50,7 @@ public class PublicUrlServices {
         return builder.encode().build().toUriString();
     }
 
-    public String buildUrl(PathnameTypeEnum type, String query, String token){
-        return buildUrl(type.pathname, query, token);
+    public String buildUrl(PublicRoute route, String query, String token){
+        return buildUrl(route.pathname, query, token);
     }
 }

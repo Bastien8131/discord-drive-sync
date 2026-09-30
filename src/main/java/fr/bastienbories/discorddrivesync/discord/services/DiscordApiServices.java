@@ -1,24 +1,28 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import fr.bastienbories.discorddrivesync.common.PublicRoute;
+import fr.bastienbories.discorddrivesync.common.UrlServices;
 import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
-import fr.bastienbories.discorddrivesync.common.PathnameTypeEnum;
-import fr.bastienbories.discorddrivesync.common.PublicUrlServices;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -31,9 +35,9 @@ public class DiscordApiServices {
     private final Set<Long> botDeletedChannelIds = ConcurrentHashMap.newKeySet();
     private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
-    private final PublicUrlServices publicUrlServices;
+    private final UrlServices publicUrlServices;
 
-    public DiscordApiServices(JDA jda, PublicUrlServices publicUrlServices) throws InterruptedException {
+    public DiscordApiServices(JDA jda, UrlServices publicUrlServices) throws InterruptedException {
         this.jda = jda;
         List<Guild> guilds = jda.awaitReady().getGuilds();
         this.guild = guilds.stream().findFirst().orElseThrow(
@@ -55,7 +59,7 @@ public class DiscordApiServices {
         if (!driveFiles.isEmpty()){ contentBuild.append("\n"); }
         for (DriveFile driveFile: driveFiles){
             contentBuild.append("\n");
-            contentBuild.append(publicUrlServices.buildUrl(PathnameTypeEnum.SHARE_FILE_PATH, "", driveFile.getShareToken()));
+            contentBuild.append(publicUrlServices.buildUrl(PublicRoute.DOWNLOAD_FILE, "", driveFile.getShareToken()));
         }
 
         if (!links.isEmpty()){ contentBuild.append("\n"); }
