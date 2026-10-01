@@ -66,5 +66,26 @@ public class CoreUploadLink implements HasId {
         return token;
     }
 
+    public boolean isUsed() {
+        return used;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public OffsetDateTime getEndedAt() {
+        return endedAt;
+    }
+
+    public DiscordUser getUser() {
+        return user;
+    }
+
+    public DiscordChannel getDiscordChannel() {
+        return discordChannel;
+    }
+
+    
     
 }

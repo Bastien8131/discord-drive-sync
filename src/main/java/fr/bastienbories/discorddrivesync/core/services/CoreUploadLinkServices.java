@@ -1,10 +1,12 @@
 package fr.bastienbories.discorddrivesync.core.services;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.core.repository.CoreUploadLinkRepository;
-import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
@@ -18,5 +20,9 @@ public class CoreUploadLinkServices {
 
     public void save(CoreUploadLink link) {
         coreUploadLinkRepository.save(link);
+    }
+
+    public Optional<CoreUploadLink> getByToken(String token) {
+        return coreUploadLinkRepository.findFullByToken(token);
     }
 }
