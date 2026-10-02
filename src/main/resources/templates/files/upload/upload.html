@@ -1,11 +1,108 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Upload files</title>
 </head>
+
 <body>
-    Hello
+    <section th:if="${link.used}">
+        <h3>Already used</h3>
+    </section>
+    <section th:if="${!link.used}">
+        <form action="" method="post" enctype="multipart/form-data" onsubmit="return isValidForm()">
+
+            <fieldset id="checkboxs">
+                <legend>Select the labels to associate</legend>
+                <div th:each="label : ${labels}">
+                    <input type="checkbox"
+                        name="labels"
+                        th:id="|label-${label.id}|"
+                        th:value="${label.id}"
+                        th:checked="${label.id == link.channel.labelId}">
+                    <label th:for="|label-${label.id}|" th:text="${label.name}"></label>
+                </div>
+            </fieldset>
+
+            <fieldset id="textarea">
+                <legend>Add a description to this file/these files? (Leave blank if not)</legend>
+                <textarea name="description" id="description" onkeyup="updateCharCount(event)" maxlength="2000"></textarea>
+                <div id="char-count">
+                    <span name="current">0</span>/<span name="max">2000</span>
+                </div>
+            </fieldset>
+
+            <fieldset id="files">
+                <legend>Select the files to upload from your local drive</legend>
+                <div>
+                    <input type="file" name="files" id="files" multiple/>
+                </div>
+            </fieldset>
+
+            <h3 id="labels-error" class="error-message" hidden></h3>
+            <h3 id="files-error" class="error-message" hidden></h3>
+
+            <br><button type="submit">Submit</button>
+        </form>
+    </section>
 </body>
+
+<style>
+    .error-message{
+        color: red;
+    }
+
+    textarea{
+        min-width: 500px;
+        max-width: 500px;
+        min-height: 50px;
+        resize: none;
+        field-sizing: content;
+    }
+</style>
+
+<script>
+    function isValidForm() {
+        const labelsError = document.getElementById("labels-error")
+        const filesError = document.getElementById("files-error")
+
+        const labels = document.getElementsByName("labels");
+        const files = document.getElementsByName("files")[0];
+
+        var labelsAreSelected = false
+        var filesAreSelected = false
+
+        labels.forEach(label => {
+            if (label.checked) {
+                labelsAreSelected = true
+            }
+        });
+
+        filesAreSelected = files.files.length > 0
+
+        updateErrorMessage(labelsError, labelsAreSelected, "You must select at least one label")
+        updateErrorMessage(filesError, filesAreSelected, "You must select at least one file.")
+
+        return filesAreSelected && labelsAreSelected;
+    }
+
+    function updateErrorMessage(node, hidden, message) {
+        node.hidden = hidden
+        node.textContent = message
+    }
+
+    function updateCharCount(event){
+        const nodesCountUI = document.querySelectorAll("div#char-count>span");
+
+        nodesCountUI.forEach(node => {
+            name = node.attributes.getNamedItem("name").value;
+            if(name == "current"){
+                node.textContent = event.target.value.length
+            }
+        });
+    }
+</script>
+
 </html>

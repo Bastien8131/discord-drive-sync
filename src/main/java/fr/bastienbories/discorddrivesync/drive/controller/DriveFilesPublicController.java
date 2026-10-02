@@ -17,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 import fr.bastienbories.discorddrivesync.common.PublicRoute;
 import fr.bastienbories.discorddrivesync.core.mapper.CoreLabelMapper;
 import fr.bastienbories.discorddrivesync.core.mapper.CoreUploadLinkMapper;
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.core.model.dto.CoreLabelDto;
 import fr.bastienbories.discorddrivesync.core.model.dto.CoreUploadLinkDto;
@@ -67,8 +66,10 @@ public class DriveFilesPublicController {
 
     @GetMapping(PublicRoute.Paths.UPLOAD_FILES + "/{token}")
     public String uploadFiles(@PathVariable String token, Model model) {
-        CoreUploadLink link = coreUploadLinkServices.getByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        //TODO: check before getByToken of link if already used (create checkIfUsedByToken)
         
+        CoreUploadLink link = coreUploadLinkServices.getByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
         CoreUploadLinkDto linkDto = coreUploadLinkMapper.coreUploadLinkToCoreUploadLinkDto(link);
         List<CoreLabelDto> labelsDto = coreLabelMapper.coreLabelListToCoreLabelDtoList(coreLabelServices.getAll());
 
