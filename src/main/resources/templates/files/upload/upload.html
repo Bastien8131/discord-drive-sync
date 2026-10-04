@@ -18,7 +18,7 @@
                 <legend>Select the labels to associate</legend>
                 <div th:each="label : ${labels}">
                     <input type="checkbox"
-                        name="labels"
+                        name="labelIds"
                         th:id="|label-${label.id}|"
                         th:value="${label.id}"
                         th:checked="${label.id == link.channel.labelId}">

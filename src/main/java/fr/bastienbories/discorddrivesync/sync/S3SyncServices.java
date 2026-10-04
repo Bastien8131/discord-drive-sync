@@ -1,6 +1,7 @@
 package fr.bastienbories.discorddrivesync.sync;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
+import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
@@ -11,11 +12,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,12 +56,12 @@ public class S3SyncServices {
 
         for (Attachment attachment: attachments){
             String contentType = Objects.toString(attachment.getContentType(), "unknown");
-            String path = String.format("%s/%d", getExtension(attachment), attachment.getIdLong());
+            String key = String.format("%s/%d", getExtension(attachment), attachment.getIdLong());
             CompletableFuture<Optional<DriveFile>> driveFile = attachment.getProxy().download().thenCompose(inputStream -> {
                 try (inputStream) {
                     return s3AsyncClient.putObject(req -> req
                                     .bucket("discord-drive-sync")
-                                    .key(path)
+                                    .key(key)
                                     .contentType(contentType)
                                     .build(),
                             AsyncRequestBody.fromBytes(inputStream.readAllBytes())
@@ -67,7 +72,7 @@ public class S3SyncServices {
             }).thenApply(putObjectResponse -> Optional.of(new DriveFile(
                     attachment.getIdLong(),
                     attachment.getFileName(),
-                    path,
+                    key,
                     uploader
             ))).exceptionally(ex -> {
                 LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
@@ -85,6 +90,101 @@ public class S3SyncServices {
             List<DriveFile> files = driveFiles.stream().map(CompletableFuture::join).flatMap(Optional::stream).collect(Collectors.<DriveFile>toList());
             return driveFileServices.saveAll(files);
         });
+    }
+
+    public CompletableFuture<List<DriveFile>> getDriveFileFromMultipartFiles(List<MultipartFile> multipartFiles, DiscordUser uploader){
+
+        List<CompletableFuture<Optional<DriveFile>>> futureDriveFiles = multipartFilesToFutureDriveFiles(multipartFiles, uploader);
+        CompletableFuture<List<DriveFile>> driveFiles = listFutureToFutureList(futureDriveFiles);
+
+        return driveFiles;
+    }
+
+    public CompletableFuture<List<DriveFile>> getDriveFileFromAttachments(List<Attachment> attachments, DiscordUser uploader){
+
+        List<CompletableFuture<Optional<DriveFile>>> futureDriveFiles = attachmentsToFutureDriveFiles(attachments, uploader);
+        CompletableFuture<List<DriveFile>> driveFiles = listFutureToFutureList(futureDriveFiles);
+
+        return driveFiles;
+    }
+
+    // A renommé
+    // Peut etre en faire une fonction non spécifique a DriveFile
+    private CompletableFuture<List<DriveFile>> listFutureToFutureList(List<CompletableFuture<Optional<DriveFile>>> driveFiles){
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(
+                driveFiles.toArray(new CompletableFuture[driveFiles.size()])
+        );
+
+        return allFuturesResult.thenApply(v -> {
+            List<DriveFile> files = driveFiles.stream().map(CompletableFuture::join).flatMap(Optional::stream).collect(Collectors.<DriveFile>toList());
+            return driveFileServices.saveAll(files);
+        });
+    }
+
+    private List<CompletableFuture<Optional<DriveFile>>> multipartFilesToFutureDriveFiles(List<MultipartFile> multipartFiles, DiscordUser uploader){
+        List<CompletableFuture<Optional<DriveFile>>> driveFiles = new ArrayList<>();
+
+        for (MultipartFile multipartFile: multipartFiles){
+            
+            if(!multipartFile.isEmpty()){
+            
+                String contentType = Objects.toString(multipartFile.getContentType(), "application/octet-stream");
+                String key = String.format(TextUtils.generateUUID());
+
+                try {
+                    CompletableFuture<Optional<DriveFile>> driveFile = uploadFile(multipartFile.getInputStream(), contentType, key)
+                    .thenApply(putObjectResponse -> Optional.of(
+                        driveFileServices.create(multipartFile.getOriginalFilename(), key, uploader)
+                    )).exceptionally(ex -> {
+                        LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                        return Optional.empty();
+                    });
+
+                    driveFiles.add(driveFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return driveFiles;
+    } 
+
+    private List<CompletableFuture<Optional<DriveFile>>> attachmentsToFutureDriveFiles(List<Attachment> attachments, DiscordUser uploader){
+        List<CompletableFuture<Optional<DriveFile>>> driveFiles = new ArrayList<>();
+
+        for (Attachment attachment: attachments){
+
+            String contentType = Objects.toString(attachment.getContentType(), "application/octet-stream");
+            String key = String.format(TextUtils.generateUUID());
+
+            CompletableFuture<Optional<DriveFile>> driveFile = attachment.getProxy().download().thenCompose(inputStream -> {
+                return uploadFile(inputStream, contentType, key);
+            }).thenApply(putObjectResponse -> Optional.of(
+                driveFileServices.create(attachment.getIdLong(), attachment.getFileName(), key, uploader)
+            )).exceptionally(ex -> {
+                LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                return Optional.empty();
+            });
+
+            driveFiles.add(driveFile);
+        }
+
+        return driveFiles;
+    }
+
+    private CompletableFuture<PutObjectResponse> uploadFile(InputStream inputStream, String contentType, String key){
+        try (inputStream) {
+            return s3AsyncClient.putObject(req -> req
+                            .bucket("discord-drive-sync")
+                            .key(key)
+                            .contentType(contentType)
+                            .build(),
+                    AsyncRequestBody.fromBytes(inputStream.readAllBytes())
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public CompletableFuture<DeleteObjectResponse> delete(DriveFile driveFile) {

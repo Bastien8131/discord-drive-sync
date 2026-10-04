@@ -1,6 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.services;
 
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.repository.DriveFileRepository;
 import org.springframework.stereotype.Service;
@@ -54,5 +55,13 @@ public class DriveFileServices {
 
     public void delete(DriveFile driveFile) {
         driveFileRepository.delete(driveFile);
+    }
+
+    public DriveFile create(Long discordId, String filename, String key, DiscordUser uploader){
+        return new DriveFile(discordId, filename, key, uploader);
+    }
+
+    public DriveFile create(String filename, String key, DiscordUser uploader){
+        return create(null, filename, key, uploader);
     }
 }

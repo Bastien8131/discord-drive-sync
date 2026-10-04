@@ -93,4 +93,10 @@ public class CoreLabel implements HasIdAndName {
             coreContent.addLabel(this);
         }
     }
+
+    public List<DiscordChannel> getDiscordChannels() {
+        return discordChannels;
+    }
+
+    
 }

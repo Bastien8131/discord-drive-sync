@@ -100,6 +100,8 @@ public class CoreContent implements HasId {
 
     public void addLabel(CoreLabel coreLabel) { labels.add(coreLabel); }
 
+    public void addLabelList(List<CoreLabel> coreLabels) {labels.addAll(coreLabels); }
+
     public void addDriveFile(DriveFile driveFile) { files.add(driveFile); }
 
     public void addDriveFileList(List<DriveFile> driveFiles){

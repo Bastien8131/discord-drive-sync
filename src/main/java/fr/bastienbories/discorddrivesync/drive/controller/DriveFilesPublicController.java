@@ -12,6 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import fr.bastienbories.discorddrivesync.common.PublicRoute;
@@ -23,6 +27,7 @@ import fr.bastienbories.discorddrivesync.core.model.dto.CoreUploadLinkDto;
 import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreUploadLinkServices;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
+
 
 
 @Controller
@@ -78,4 +83,5 @@ public class DriveFilesPublicController {
 
         return "files/upload/upload";
     }
+    
 }
