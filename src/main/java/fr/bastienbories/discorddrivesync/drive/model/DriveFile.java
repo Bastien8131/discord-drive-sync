@@ -1,6 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
 import fr.bastienbories.discorddrivesync.common.HasIdAndName;
+import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
@@ -47,14 +48,12 @@ public class DriveFile implements HasIdAndName {
         this.discordId = null;
         this.name = name;
         this.storageKey = storageKey;
-        this.shareToken = generateShareToken();
+        this.shareToken = TextUtils.generateToken();
         this.uploader = uploader;
         this.attachedContents = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
-    private String generateShareToken() {
-        return java.util.UUID.randomUUID().toString().replace("-", "");
     public DriveFile(Long discordId, String name, String storageKey, DiscordUser uploader) {
         this.discordId = discordId;
         this.name = name;

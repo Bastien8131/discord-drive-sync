@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 import fr.bastienbories.discorddrivesync.common.HasId;
+import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import jakarta.persistence.Column;
@@ -45,16 +46,12 @@ public class CoreUploadLink implements HasId {
     protected CoreUploadLink() {}
 
     public CoreUploadLink(DiscordUser user, DiscordChannel discordChannel) {
-        this.token = generateToken();
+        this.token = TextUtils.generateToken();
         this.used = false;
         this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
         this.endedAt = this.createdAt.plusHours(1);
         this.user = user;
         this.discordChannel = discordChannel;
-    }
-
-    private String generateToken() {
-        return java.util.UUID.randomUUID().toString().replace("-", "");
     }
 
     @Override
