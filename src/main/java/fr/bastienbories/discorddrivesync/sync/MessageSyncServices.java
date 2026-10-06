@@ -90,7 +90,7 @@ public class MessageSyncServices {
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
-                s3SyncServices.getFilesFromMessageAndUpload(message, discordUser).thenAccept(driveFiles -> {
+                s3SyncServices.getDriveFileFromAttachments(message.getAttachments(), discordUser).thenAccept(driveFiles -> {
 
                     discordApiServices.deleteMessage(message);
 
