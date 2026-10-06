@@ -1,5 +1,14 @@
 package fr.bastienbories.discorddrivesync.sync;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
@@ -9,20 +18,15 @@ import fr.bastienbories.discorddrivesync.core.services.CoreLinkServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
-import fr.bastienbories.discorddrivesync.discord.services.*;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordMessageServices;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordUserServices;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
-import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Transactional
@@ -90,7 +94,7 @@ public class MessageSyncServices {
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
 
-                s3SyncServices.getDriveFileFromAttachments(message.getAttachments(), discordUser).thenAccept(driveFiles -> {
+                s3SyncServices.uploadAttachments(message.getAttachments(), discordUser).thenAccept(driveFiles -> {
 
                     discordApiServices.deleteMessage(message);
 
@@ -149,7 +153,7 @@ public class MessageSyncServices {
 
             if (!discordMessageServices.dataExistsInSomeChannel(coreContent)) {
                 driveFileServices.findByCoreContent(coreContent).ifPresentOrElse(
-                        s3SyncServices::deleteMultipleFiles,
+                        s3SyncServices::deleteAll,
                         () -> LogMessages.listNotFoundInDatabase(log, DriveFile.class, CoreContent.class, coreContent.getId())
                 );
             }
