@@ -1,5 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.services;
 
+import fr.bastienbories.discorddrivesync.common.PublicRoute;
+import fr.bastienbories.discorddrivesync.common.UrlServices;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
@@ -23,9 +25,12 @@ public class DriveFileServices {
 
     private final DriveFileRepository driveFileRepository;
 
-    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository) {
+    private final UrlServices urlServices;
+
+    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository, UrlServices urlServices) {
         this.s3AsyncClient = s3AsyncClient;
         this.driveFileRepository = driveFileRepository;
+        this.urlServices = urlServices;
     }
 
     public void deleteAll(List<DriveFile> driveFiles) {
@@ -63,5 +68,9 @@ public class DriveFileServices {
 
     public DriveFile create(String filename, String key, DiscordUser uploader){
         return create(null, filename, key, uploader);
+    }
+
+    public String buildDownloadLink(DriveFile driveFile) {
+        return urlServices.buildUrl(PublicRoute.DOWNLOAD_FILE, "", driveFile.getShareToken());
     }
 }

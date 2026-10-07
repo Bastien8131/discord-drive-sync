@@ -1,7 +1,9 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
 import fr.bastienbories.discorddrivesync.common.HasIdAndName;
+import fr.bastienbories.discorddrivesync.common.PublicRoute;
 import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.common.UrlServices;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
