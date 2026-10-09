@@ -48,4 +48,10 @@ public class CoreLabelServices {
     public CoreLabel getOrCreateLabelByName(String name) {
         return getByName(name).orElseGet(() -> coreLabelRepository.save(new CoreLabel(name)));
     }
+
+    public List<Long> getLabelIdsByDiscordChannelList(List<DiscordChannel> discordChannels) {
+        List<Long> ids = discordChannels.stream().map(discordChannel -> discordChannel.getId()).toList();
+
+        return coreLabelRepository.findIdsByDiscordChannelIds(ids);
+    }
 }

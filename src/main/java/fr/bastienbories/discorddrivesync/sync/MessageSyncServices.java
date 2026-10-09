@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
+import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.services.CoreContentServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
@@ -68,77 +69,79 @@ public class MessageSyncServices {
 
         //get the list of channel mentioned in the message
         //if not mention, bot take the channel source of message send
-        List<DiscordChannel> discordChannelTargetsList = new ArrayList<>();
+        List<DiscordChannel> targetChannels = new ArrayList<>();
         List<GuildChannel> mentionedChannels = message.getMentions().getChannels();
         if (mentionedChannels.isEmpty()) {
             long id = message.getChannelIdLong();
             discordChannelServices.getById(id).ifPresentOrElse(
-                    discordChannelTargetsList::add,
+                    targetChannels::add,
                     () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, id)
             );
         } else {
             for (GuildChannel channel : mentionedChannels) {
                 long id = channel.getIdLong();
                 discordChannelServices.getById(id).ifPresentOrElse(
-                        discordChannelTargetsList::add,
+                        targetChannels::add,
                         () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, id)
                 );
             }
         }
 
-        //resolve label ids now, while the session is still open (the DiscordChannel proxy will be detached once the async callbacks run)
-        List<Long> discordChannelTargetLabelIds = discordChannelTargetsList.stream()
-                .map(discordChannel -> discordChannel.getLabel().getId())
-                .toList();
-
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
-
                 s3SyncServices.uploadAttachments(message.getAttachments(), discordUser).thenAccept(driveFiles -> {
 
                     discordApiServices.deleteMessage(message);
+                    createDiscordMessage(discordUser, message.getContentRaw(), targetChannels, driveFiles);
 
-                    //create data obj or fetch from db if alrady exsist
-                    CoreContent coreContent = coreContentServices.getOrCreateAndAddDriveFiles(discordUser, message.getContentRaw(), driveFiles);
-
-                    //tag the content with the label of every channel it is broadcast to
-                    for (Long labelId : discordChannelTargetLabelIds) {
-                        coreLabelServices.addCoreContent(labelId, coreContent);
-                    }
-
-                    List<CoreLink> links = coreLinkServices.getOrCreateLinks(message.getContentDisplay(), coreContent);
-
-                    discordApiServices.sendMultipleMessages(discordChannelTargetsList, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
-
-                        for (Message botMessage : botMessages) {
-                            long botMsgChannelId = botMessage.getChannelIdLong();
-                            discordChannelTargetsList.stream().filter(
-                                    discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
-                                    discordChannel -> {
-                                        DiscordMessage discordMessage = new DiscordMessage(
-                                                botMessage.getIdLong(),
-                                                coreContent,
-                                                discordUser,
-                                                discordChannel
-                                        );
-
-                                        discordMessageServices.save(discordMessage);
-                                    },
-                                    () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, discordChannelTargetsList)
-                            );
-                        }
-                    }).exceptionally(
-                            ex -> {
-                                LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
-                                return null;
-                            }
-                    );
                 }).exceptionally(ex -> {
                     LogMessages.unexpectedError(log, ex);
                     return null;
                 });
             }, () -> LogMessages.notFoundInDatabase(log, DiscordChannel.class, channelId));
         }, () -> LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId));
+    }
+
+    public void createDiscordMessage(
+            DiscordUser author, String text,
+            List<DiscordChannel> targetChannels,
+            List<DriveFile> driveFiles
+        ){
+            
+        CoreContent coreContent = coreContentServices.getOrCreateAndAddDriveFiles(author, text, driveFiles);
+        List<Long> labelIds = coreLabelServices.getLabelIdsByDiscordChannelList(targetChannels);
+
+        for (Long labelId : labelIds) {
+            coreLabelServices.addCoreContent(labelId, coreContent);
+        }
+
+        List<CoreLink> links = coreLinkServices.getOrCreateLinks(text, coreContent);
+
+        discordApiServices.sendMultipleMessages(targetChannels, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
+
+            for (Message botMessage : botMessages) {
+                long botMsgChannelId = botMessage.getChannelIdLong();
+                targetChannels.stream().filter(
+                        discordChannel -> discordChannel.getId() == botMsgChannelId).findFirst().ifPresentOrElse(
+                        discordChannel -> {
+                            DiscordMessage discordMessage = new DiscordMessage(
+                                    botMessage.getIdLong(),
+                                    coreContent,
+                                    author,
+                                    discordChannel
+                            );
+
+                            discordMessageServices.save(discordMessage);
+                        },
+                        () -> LogMessages.notFoundInTheList(log, DiscordChannel.class, botMsgChannelId, targetChannels)
+                );
+            }
+        }).exceptionally(
+                ex -> {
+                    LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+                    return null;
+                }
+        );
     }
 
     public void deleteMessageFromDiscord(@NonNull MessageDeleteEvent event) {
