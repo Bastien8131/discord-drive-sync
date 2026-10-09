@@ -79,7 +79,5 @@ public class DriveFileController {
             });
 
         });
-
-        System.out.print(description);
     }
 }
