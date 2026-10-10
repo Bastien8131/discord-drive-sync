@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,5 +35,9 @@ public class DiscordChannelServices {
 
     public List<DiscordChannel> getAllByLabel(CoreLabel coreLabel) {
         return discordChannelRepository.getAllByLabel(coreLabel);
+    }
+
+    public Collection<? extends DiscordChannel> getAllByLabelId(Long id) {
+        return discordChannelRepository.getAllByLabelId(id);
     }
 }

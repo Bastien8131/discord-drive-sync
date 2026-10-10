@@ -53,25 +53,17 @@ public class DriveFileController {
         @RequestPart List<MultipartFile> files,
         @PathVariable String token
     ) {
-        List<CoreLabel> labels = new ArrayList<>();
-
         coreUploadLinkServices.getByToken(token).ifPresent(link -> {
 
             DiscordUser user = link.getUser();
             List<DiscordChannel> targetChannels = new ArrayList<>();
 
+            if(labelIds.isEmpty()){
+                labelIds.add(link.getDiscordChannel().getLabel().getId());
+            }
+
             for (Long id : labelIds) {
-                coreLabelServices.getById(id).ifPresent(label -> {
-                    labels.add(label);
-                });
-            }
-
-            if(labels.size() <= 0){
-                labels.add(link.getDiscordChannel().getLabel());
-            }
-
-            for (CoreLabel label : labels) {
-                targetChannels.addAll(discordChannelServices.getAllByLabel(label));
+                targetChannels.addAll(discordChannelServices.getAllByLabelId(id));
             }
 
             s3SyncServices.uploadMultipartFiles(files, user).thenAccept(driveFiles -> {
