@@ -1,15 +1,20 @@
 package fr.bastienbories.discorddrivesync.drive.controller;
 
 import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import fr.bastienbories.discorddrivesync.common.PublicRoute;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
@@ -54,6 +59,13 @@ public class DriveFileController {
         @PathVariable String token
     ) {
         coreUploadLinkServices.getByToken(token).ifPresent(link -> {
+            if (link.isUsed()) {
+                throw new ResponseStatusException(HttpStatus.LOCKED);
+            }
+
+            if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
+                throw new ResponseStatusException(HttpStatus.GONE);
+            }
 
             DiscordUser user = link.getUser();
             List<DiscordChannel> targetChannels = new ArrayList<>();

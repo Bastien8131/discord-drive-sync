@@ -67,6 +67,10 @@ public class CoreUploadLink implements HasId {
         return used;
     }
 
+    public void setUsed(boolean used) {
+        this.used = used;
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
