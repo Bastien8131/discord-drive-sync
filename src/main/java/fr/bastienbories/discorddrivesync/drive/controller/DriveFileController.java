@@ -6,7 +6,10 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,15 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.common.PublicRoute;
-import fr.bastienbories.discorddrivesync.core.model.CoreContent;
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
+import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.core.services.CoreUploadLinkServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
-import fr.bastienbories.discorddrivesync.discord.services.DiscordMessageServices;
+import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
+import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
+import fr.bastienbories.discorddrivesync.drive.model.dto.DriveFileResultDto;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import fr.bastienbories.discorddrivesync.sync.MessageSyncServices;
 import fr.bastienbories.discorddrivesync.sync.S3SyncServices;
@@ -32,56 +35,82 @@ import fr.bastienbories.discorddrivesync.sync.S3SyncServices;
 @RestController
 public class DriveFileController {
 
+    private static final Logger log = LoggerFactory.getLogger(DriveFileController.class);
+
     private final DiscordChannelServices discordChannelServices;
     private final DriveFileServices driveFileServices;
     private final CoreUploadLinkServices coreUploadLinkServices;
-    private final CoreLabelServices coreLabelServices;
-    private final DiscordMessageServices discordMessageServices;
 
     private final S3SyncServices s3SyncServices;
     private final MessageSyncServices messageSyncServices;
 
-    public DriveFileController(DriveFileServices driveFileServices, CoreUploadLinkServices coreUploadLinkServices, CoreLabelServices coreLabelServices, DiscordMessageServices discordMessageServices, S3SyncServices s3SyncServices, MessageSyncServices messageSyncServices, DiscordChannelServices discordChannelServices) {
+    private final DriveFileMapper driveFileMapper;
+
+    public DriveFileController(DriveFileServices driveFileServices, CoreUploadLinkServices coreUploadLinkServices, S3SyncServices s3SyncServices, MessageSyncServices messageSyncServices, DiscordChannelServices discordChannelServices, DriveFileMapper driveFileMapper) {
         this.driveFileServices = driveFileServices;
         this.coreUploadLinkServices = coreUploadLinkServices;
-        this.coreLabelServices = coreLabelServices;
-        this.discordMessageServices = discordMessageServices;
         this.s3SyncServices = s3SyncServices;
         this.messageSyncServices = messageSyncServices;
         this.discordChannelServices = discordChannelServices;
+        this.driveFileMapper = driveFileMapper;
     }
 
     @PostMapping(PublicRoute.Paths.UPLOAD_FILES + "/{token}")
-    public void uploadFiles(
+    public CompletableFuture<DriveFileResultDto> uploadFiles(
         @RequestParam List<Long> labelIds,
         @RequestParam String description,
         @RequestPart List<MultipartFile> files,
         @PathVariable String token
     ) {
-        coreUploadLinkServices.getByToken(token).ifPresent(link -> {
-            if (link.isUsed()) {
-                throw new ResponseStatusException(HttpStatus.LOCKED);
+
+        if (files.isEmpty() || token.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        CoreUploadLink link = coreUploadLinkServices.getByToken(token).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        });
+
+        if (link.isUsed()) {
+            throw new ResponseStatusException(HttpStatus.LOCKED);
+        }
+
+        if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
+            throw new ResponseStatusException(HttpStatus.GONE);
+        }
+
+        coreUploadLinkServices.updateUsedStatus(link, true);
+
+        DiscordUser user = link.getUser();
+        List<DiscordChannel> targetChannels = new ArrayList<>();
+
+        if(labelIds.isEmpty()){
+            labelIds.add(link.getDiscordChannel().getLabel().getId());
+        }
+
+        for (Long id : labelIds) {
+            targetChannels.addAll(discordChannelServices.getAllByLabelId(id));
+        }
+
+        return s3SyncServices.uploadMultipartFiles(files, user).thenCompose(results -> {
+
+            if(!files.isEmpty() && results.isEmpty()){
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
-                throw new ResponseStatusException(HttpStatus.GONE);
+            List<DriveFile> drivefiles = driveFileServices.getSucceededResult(results);
+
+            if(drivefiles.isEmpty()){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
 
-            DiscordUser user = link.getUser();
-            List<DiscordChannel> targetChannels = new ArrayList<>();
-
-            if(labelIds.isEmpty()){
-                labelIds.add(link.getDiscordChannel().getLabel().getId());
-            }
-
-            for (Long id : labelIds) {
-                targetChannels.addAll(discordChannelServices.getAllByLabelId(id));
-            }
-
-            s3SyncServices.uploadMultipartFiles(files, user).thenAccept(driveFiles -> {
-                messageSyncServices.createDiscordMessage(user, description, targetChannels, driveFiles);
+            return messageSyncServices.createDiscordMessage(user, description, targetChannels, drivefiles).thenApply(v -> {
+                return driveFileMapper.resultsToResultsDto(results);
             });
-
+            
+        }).exceptionally(ex -> {
+            LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         });
     }
 }

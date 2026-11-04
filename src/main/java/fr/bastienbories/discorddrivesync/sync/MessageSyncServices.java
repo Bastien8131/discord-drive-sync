@@ -1,7 +1,9 @@
 package fr.bastienbories.discorddrivesync.sync;
 
+import fr.bastienbories.discorddrivesync.drive.controller.DriveFileController;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -11,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.services.CoreContentServices;
 import fr.bastienbories.discorddrivesync.core.services.CoreLabelServices;
@@ -24,6 +25,7 @@ import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices
 import fr.bastienbories.discorddrivesync.discord.services.DiscordMessageServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordUserServices;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
+import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult.Failure;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -89,10 +91,20 @@ public class MessageSyncServices {
 
         discordUserServices.getOrFetchById(authorId).ifPresentOrElse(discordUser -> {
             discordChannelServices.getById(channelId).ifPresentOrElse(discordChannelSource -> {
-                s3SyncServices.uploadAttachments(message.getAttachments(), discordUser).thenAccept(driveFiles -> {
+                s3SyncServices.uploadAttachments(message.getAttachments(), discordUser).thenAccept(results -> {
+                    List<DriveFile> succeeded = driveFileServices.getSucceededResult(results);
+                    List<Failure> failed = driveFileServices.getFailedResult(results);
 
                     discordApiServices.deleteMessage(message);
-                    createDiscordMessage(discordUser, message.getContentRaw(), targetChannels, driveFiles);
+
+                    if (!succeeded.isEmpty()) {
+                        createDiscordMessage(discordUser, message.getContentRaw(), targetChannels, succeeded);
+                    }
+                    
+                    if (!failed.isEmpty()) {
+                        //TODO: send message to the user in discord to report which file failed
+                    }
+                    
 
                 }).exceptionally(ex -> {
                     LogMessages.unexpectedError(log, ex);
@@ -102,7 +114,7 @@ public class MessageSyncServices {
         }, () -> LogMessages.notFoundInDatabase(log, DiscordUser.class, authorId));
     }
 
-    public void createDiscordMessage(
+    public CompletableFuture<Void> createDiscordMessage(
             DiscordUser author, String text,
             List<DiscordChannel> targetChannels,
             List<DriveFile> driveFiles
@@ -117,7 +129,7 @@ public class MessageSyncServices {
 
         List<CoreLink> links = coreLinkServices.getOrCreateLinks(text, coreContent);
 
-        discordApiServices.sendMultipleMessages(targetChannels, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
+        return discordApiServices.sendMultipleMessages(targetChannels, coreContent.getText(), driveFiles, links).thenAccept(botMessages -> {
 
             for (Message botMessage : botMessages) {
                 long botMsgChannelId = botMessage.getChannelIdLong();

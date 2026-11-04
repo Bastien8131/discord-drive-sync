@@ -33,4 +33,9 @@ public class CoreUploadLinkServices {
         save(link);
         return link;
     }
+
+    public void updateUsedStatus(CoreUploadLink link, boolean used) {
+        link.setUsed(used);
+        save(link);
+    }
 }

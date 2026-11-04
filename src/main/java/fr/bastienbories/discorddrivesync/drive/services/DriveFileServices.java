@@ -6,6 +6,8 @@ import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.repository.DriveFileRepository;
+import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -27,7 +29,8 @@ public class DriveFileServices {
 
     private final UrlServices urlServices;
 
-    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository, UrlServices urlServices) {
+    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository,
+            UrlServices urlServices) {
         this.s3AsyncClient = s3AsyncClient;
         this.driveFileRepository = driveFileRepository;
         this.urlServices = urlServices;
@@ -41,17 +44,39 @@ public class DriveFileServices {
         return driveFileRepository.saveAll(files);
     }
 
+    public List<DriveFile> getSucceededResult(List<DriveFileResult> results) {
+        List<DriveFile> driveFiles = results.stream()
+                .filter(ele -> ele instanceof DriveFileResult.Success)
+                .map(ele -> (DriveFileResult.Success) ele)
+                .map(success -> success.driveFile())
+                .toList();
+        
+        return driveFiles;
+    }
+
+    public List<DriveFileResult.Failure> getFailedResult(List<DriveFileResult> results) {
+        List<DriveFileResult.Failure> driveFiles = results.stream()
+                .filter(ele -> ele instanceof DriveFileResult.Failure)
+                .map(ele -> (DriveFileResult.Failure) ele)
+                .toList();
+        
+        return driveFiles;
+    }
+
+    public List<DriveFile> saveAllSucceeded(List<DriveFileResult> results) {
+        return saveAll(getSucceededResult(results));
+    }
+
     public Optional<DriveFile> findByShareToken(String shareToken) {
         return driveFileRepository.findDriveFileByShareToken(shareToken);
     }
 
-    public CompletableFuture<ResponseInputStream<GetObjectResponse>> downloadFile(DriveFile driveFile){
+    public CompletableFuture<ResponseInputStream<GetObjectResponse>> downloadFile(DriveFile driveFile) {
         return s3AsyncClient.getObject(req -> req
                 .bucket("discord-drive-sync")
                 .key(driveFile.getStorageKey())
                 .build(),
-                AsyncResponseTransformer.toBlockingInputStream()
-        );
+                AsyncResponseTransformer.toBlockingInputStream());
     }
 
     public Optional<List<DriveFile>> findByCoreContent(CoreContent coreContent) {
@@ -62,11 +87,11 @@ public class DriveFileServices {
         driveFileRepository.delete(driveFile);
     }
 
-    public DriveFile create(Long discordId, String filename, String key, DiscordUser uploader){
+    public DriveFile create(Long discordId, String filename, String key, DiscordUser uploader) {
         return new DriveFile(discordId, filename, key, uploader);
     }
 
-    public DriveFile create(String filename, String key, DiscordUser uploader){
+    public DriveFile create(String filename, String key, DiscordUser uploader) {
         return create(null, filename, key, uploader);
     }
 
