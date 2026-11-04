@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import fr.bastienbories.discorddrivesync.common.AsyncUtils;
 import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.common.PublicRoute;
 import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
@@ -109,7 +110,13 @@ public class DriveFileController {
             });
             
         }).exceptionally(ex -> {
-            LogMessages.unexpectedErrorDuringAsyncProcessing(log, ex);
+            Throwable th = AsyncUtils.unwrap(ex);
+
+            if (th instanceof ResponseStatusException rse) {
+                throw rse;
+            }
+            
+            LogMessages.unexpectedErrorDuringAsyncProcessing(log, th);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         });
     }
