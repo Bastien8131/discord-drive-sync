@@ -8,26 +8,36 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import fr.bastienbories.discorddrivesync.common.PublicRoute;
-import fr.bastienbories.discorddrivesync.common.UrlServices;
+import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
+import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
+import fr.bastienbories.discorddrivesync.drive.controller.DriveFileController;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
+import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult.Failure;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.CacheRestAction;
 
 @Service
 @Transactional
 public class DiscordApiServices {
+
+    private static final Logger log = LoggerFactory.getLogger(DiscordApiServices.class);
 
     private final JDA jda;
     private final Guild guild;
@@ -146,5 +156,34 @@ public class DiscordApiServices {
     public void deleteChannel(TextChannel channel){
         botDeletedChannelIds.add(channel.getIdLong());
         Objects.requireNonNull(guild.getTextChannelById(channel.getIdLong())).delete().queue();
+    }
+
+    public InteractionHook getHook(String interactionToken) {
+        return InteractionHook.from(jda, interactionToken);
+    }
+
+    public void reportDriveFilesFailures(List<Failure> failures, CoreUploadLink link) {
+        StringBuilder contentBuild = new StringBuilder();
+
+        contentBuild.append("The upload of these files could not be completed : \n");
+
+        for (Failure failure : failures) {
+            contentBuild.append("\n");
+            contentBuild.append(String.format("- %s", failure.filename()));
+        }
+
+        if (!link.isInteractionExpired()) {
+            InteractionHook hook = getHook(link.getInteractionToken());
+            hook.sendMessage(contentBuild.toString()).setEphemeral(true).queue();
+        } else{
+            // Send message in DM
+            long userId = link.getUser().getId();
+            jda.retrieveUserById(userId)
+                .flatMap(user -> user.openPrivateChannel())
+                .flatMap(channel -> channel.sendMessage(contentBuild.toString()))
+                .queue(null, failure -> {
+                    LogMessages.unexpectedError(log, failure);
+                });
+        }
     }
 }

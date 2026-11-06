@@ -28,6 +28,9 @@ public class CoreUploadLink implements HasId {
     @Column(unique = true, nullable = false, columnDefinition = "TEXT")
     private String token;
 
+    @Column(columnDefinition = "TEXT")
+    private String interactionToken;
+
     @Column(nullable = false)
     private boolean used = false;
 
@@ -45,8 +48,9 @@ public class CoreUploadLink implements HasId {
 
     protected CoreUploadLink() {}
 
-    public CoreUploadLink(DiscordUser user, DiscordChannel discordChannel) {
+    public CoreUploadLink(DiscordUser user, DiscordChannel discordChannel, String interactionToken) {
         this.token = TextUtils.generateToken();
+        this.interactionToken = interactionToken; //token from event slash command /upload
         this.used = false;
         this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
         this.endedAt = this.createdAt.plusHours(1);
@@ -61,6 +65,10 @@ public class CoreUploadLink implements HasId {
 
     public String getToken() {
         return token;
+    }
+
+    public String getInteractionToken() {
+        return interactionToken;
     }
 
     public boolean isUsed() {
@@ -87,6 +95,16 @@ public class CoreUploadLink implements HasId {
         return discordChannel;
     }
 
-    
+    public boolean isExpired(OffsetDateTime endedAt){
+        return createdAt.isBefore(endedAt);
+    }
+
+    public boolean isExpired(){
+        return isExpired(endedAt);
+    }
+
+    public boolean isInteractionExpired(){
+        return isExpired(createdAt.plusMinutes(15));
+    }
     
 }

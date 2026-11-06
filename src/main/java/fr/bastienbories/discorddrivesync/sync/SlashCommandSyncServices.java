@@ -40,22 +40,24 @@ public class SlashCommandSyncServices {
     public void uploadCommand(SlashCommandInteractionEvent event) {
         long userId = event.getUser().getIdLong();
         long channelId = event.getChannelIdLong();
+        String interactionToken = event.getToken();
 
         try {
-            event.reply(getUploadLinkUrl(userId, channelId)).setEphemeral(true).queue();
+            event.reply(getUploadLinkUrl(userId, channelId, interactionToken)).setEphemeral(true).queue();
         } catch (ResourceIdNotFoundException e) {
             LogMessages.notFoundInDatabase(log, e.getEntityClass(), e.getId());
             event.reply("A server-side problem occurred, please try again").setEphemeral(true).queue();
         }
     }
 
-    private String getUploadLinkUrl(long userId, long channelId) {
+    //TODO: move to coreUploadLinkServices
+    private String getUploadLinkUrl(long userId, long channelId, String interactionToken) {
         DiscordUser user = discordUserServices.getById(userId)
                 .orElseThrow(() -> new DiscordUserNotFoundException(userId));
         DiscordChannel channel = discordChannelServices.getById(channelId)
                 .orElseThrow(() -> new DiscordChannelNotFoundException(channelId));
 
-        CoreUploadLink link = coreUploadLinkServices.create(user, channel);
+        CoreUploadLink link = coreUploadLinkServices.create(user, channel, interactionToken);
 
         return publicUrlServices.buildUrl(PublicRoute.UPLOAD_FILE, "", link.getToken());
     }

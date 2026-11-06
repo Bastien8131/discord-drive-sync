@@ -28,8 +28,8 @@ public class CoreUploadLinkServices {
         return coreUploadLinkRepository.findFullByToken(token);
     }
 
-    public CoreUploadLink create(DiscordUser user, DiscordChannel channel){
-        CoreUploadLink link = new CoreUploadLink(user, channel);
+    public CoreUploadLink create(DiscordUser user, DiscordChannel channel, String interactionToken){
+        CoreUploadLink link = new CoreUploadLink(user, channel, interactionToken);
         save(link);
         return link;
     }

@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.drive.controller;
 
+import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
 import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
 
 import java.time.OffsetDateTime;
@@ -29,6 +30,7 @@ import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
 import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.model.dto.DriveFileResultDto;
+import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult.Failure;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import fr.bastienbories.discorddrivesync.sync.MessageSyncServices;
 import fr.bastienbories.discorddrivesync.sync.S3SyncServices;
@@ -42,14 +44,16 @@ public class DriveFileController {
     private final DriveFileServices driveFileServices;
     private final CoreUploadLinkServices coreUploadLinkServices;
 
+    private final DiscordApiServices discordApiServices;
     private final S3SyncServices s3SyncServices;
     private final MessageSyncServices messageSyncServices;
 
     private final DriveFileMapper driveFileMapper;
 
-    public DriveFileController(DriveFileServices driveFileServices, CoreUploadLinkServices coreUploadLinkServices, S3SyncServices s3SyncServices, MessageSyncServices messageSyncServices, DiscordChannelServices discordChannelServices, DriveFileMapper driveFileMapper) {
+    public DriveFileController(DriveFileServices driveFileServices, CoreUploadLinkServices coreUploadLinkServices, S3SyncServices s3SyncServices, DiscordApiServices discordApiServices, MessageSyncServices messageSyncServices, DiscordChannelServices discordChannelServices, DriveFileMapper driveFileMapper) {
         this.driveFileServices = driveFileServices;
         this.coreUploadLinkServices = coreUploadLinkServices;
+        this.discordApiServices = discordApiServices;
         this.s3SyncServices = s3SyncServices;
         this.messageSyncServices = messageSyncServices;
         this.discordChannelServices = discordChannelServices;
@@ -99,10 +103,15 @@ public class DriveFileController {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
+            List<Failure> failures = driveFileServices.getFailedResult(results);
             List<DriveFile> drivefiles = driveFileServices.getSucceededResult(results);
 
             if(drivefiles.isEmpty()){
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
+
+            if(!failures.isEmpty()){
+                discordApiServices.reportDriveFilesFailures(failures, link);
             }
 
             return messageSyncServices.createDiscordMessage(user, description, targetChannels, drivefiles).thenApply(v -> {

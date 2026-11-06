@@ -29,8 +29,7 @@ public class DriveFileServices {
 
     private final UrlServices urlServices;
 
-    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository,
-            UrlServices urlServices) {
+    public DriveFileServices(S3AsyncClient s3AsyncClient, DriveFileRepository driveFileRepository, UrlServices urlServices) {
         this.s3AsyncClient = s3AsyncClient;
         this.driveFileRepository = driveFileRepository;
         this.urlServices = urlServices;
