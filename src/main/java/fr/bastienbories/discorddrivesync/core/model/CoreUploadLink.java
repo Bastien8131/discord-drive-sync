@@ -95,8 +95,9 @@ public class CoreUploadLink implements HasId {
         return discordChannel;
     }
 
-    public boolean isExpired(OffsetDateTime endedAt){
-        return createdAt.isBefore(endedAt);
+    private boolean isExpired(OffsetDateTime endedAt){
+        OffsetDateTime current = OffsetDateTime.now(ZoneOffset.UTC);
+        return current.isAfter(endedAt);
     }
 
     public boolean isExpired(){
@@ -104,7 +105,7 @@ public class CoreUploadLink implements HasId {
     }
 
     public boolean isInteractionExpired(){
-        return isExpired(createdAt.plusMinutes(15));
+        return isExpired(createdAt.plusMinutes(14));
     }
     
 }
