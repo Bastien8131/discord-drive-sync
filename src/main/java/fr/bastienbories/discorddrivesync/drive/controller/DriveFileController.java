@@ -99,6 +99,7 @@ public class DriveFileController {
         return s3SyncServices.uploadMultipartFiles(files, user).thenCompose(results -> {
 
             if(!files.isEmpty() && results.isEmpty()){
+                discordApiServices.notifyUploadUnexpectedError(link);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -106,6 +107,7 @@ public class DriveFileController {
             List<DriveFile> drivefiles = driveFileServices.getSucceededResult(results);
 
             if(drivefiles.isEmpty()){
+                discordApiServices.notifyUploadUnexpectedError(link);
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
 
@@ -124,6 +126,7 @@ public class DriveFileController {
                 throw rse;
             }
             
+            discordApiServices.notifyUploadUnexpectedError(link);
             LogMessages.unexpectedErrorDuringAsyncProcessing(log, th);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         });

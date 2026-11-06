@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -189,5 +190,9 @@ public class DiscordApiServices {
 
     public void notifyUploadFailures(CoreUploadLink link, List<Failure> failures) {
         notifyUploadLinkOwner(link, buildUploadFailuresMessage(failures));
+    }
+
+    public void notifyUploadUnexpectedError(CoreUploadLink link){
+        notifyUploadLinkOwner(link, "An unexpected error occurred");
     }
 }
