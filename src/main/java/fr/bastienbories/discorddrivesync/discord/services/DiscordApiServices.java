@@ -19,7 +19,6 @@ import fr.bastienbories.discorddrivesync.core.model.CoreLink;
 import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
-import fr.bastienbories.discorddrivesync.drive.controller.DriveFileController;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult.Failure;
 import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
@@ -27,11 +26,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.CacheRestAction;
 
 @Service
 @Transactional
@@ -77,6 +73,19 @@ public class DiscordApiServices {
         for (CoreLink coreLink: links){
             contentBuild.append("\n");
             contentBuild.append(coreLink.getUrl());
+        }
+
+        return contentBuild.toString();
+    }
+
+    private String buildUploadFailuresMessage(List<Failure> failures){
+        StringBuilder contentBuild = new StringBuilder();
+
+        contentBuild.append("The upload of these files could not be completed : \n");
+
+        for (Failure failure : failures) {
+            contentBuild.append("\n");
+            contentBuild.append(String.format("- %s", failure.filename()));
         }
 
         return contentBuild.toString();
@@ -162,28 +171,23 @@ public class DiscordApiServices {
         return InteractionHook.from(jda, interactionToken);
     }
 
-    public void reportDriveFilesFailures(List<Failure> failures, CoreUploadLink link) {
-        StringBuilder contentBuild = new StringBuilder();
-
-        contentBuild.append("The upload of these files could not be completed : \n");
-
-        for (Failure failure : failures) {
-            contentBuild.append("\n");
-            contentBuild.append(String.format("- %s", failure.filename()));
-        }
-
+    private void notifyUploadLinkOwner(CoreUploadLink link, String message){
         if (!link.isInteractionExpired()) {
             InteractionHook hook = getHook(link.getInteractionToken());
-            hook.sendMessage(contentBuild.toString()).setEphemeral(true).queue();
+            hook.sendMessage(message).setEphemeral(true).queue();
         } else{
             // Send message in DM
             long userId = link.getUser().getId();
             jda.retrieveUserById(userId)
                 .flatMap(user -> user.openPrivateChannel())
-                .flatMap(channel -> channel.sendMessage(contentBuild.toString()))
+                .flatMap(channel -> channel.sendMessage(message))
                 .queue(null, failure -> {
                     LogMessages.unexpectedError(log, failure);
                 });
         }
+    };
+
+    public void notifyUploadFailures(CoreUploadLink link, List<Failure> failures) {
+        notifyUploadLinkOwner(link, buildUploadFailuresMessage(failures));
     }
 }

@@ -1,8 +1,5 @@
 package fr.bastienbories.discorddrivesync.drive.controller;
 
-import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
-import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
-
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -27,6 +24,8 @@ import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.core.services.CoreUploadLinkServices;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordApiServices;
+import fr.bastienbories.discorddrivesync.discord.services.DiscordChannelServices;
 import fr.bastienbories.discorddrivesync.drive.mapper.DriveFileMapper;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
 import fr.bastienbories.discorddrivesync.drive.model.dto.DriveFileResultDto;
@@ -111,7 +110,7 @@ public class DriveFileController {
             }
 
             if(!failures.isEmpty()){
-                discordApiServices.reportDriveFilesFailures(failures, link);
+                discordApiServices.notifyUploadFailures(link, failures);
             }
 
             return messageSyncServices.createDiscordMessage(user, description, targetChannels, drivefiles).thenApply(v -> {
