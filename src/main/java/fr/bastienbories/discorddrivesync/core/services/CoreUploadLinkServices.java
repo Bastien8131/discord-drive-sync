@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.services;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -37,5 +38,13 @@ public class CoreUploadLinkServices {
     public void updateUsedStatus(CoreUploadLink link, boolean used) {
         link.setUsed(used);
         save(link);
+    }
+
+    public void deleteByToken(String token) {
+        coreUploadLinkRepository.deleteByToken(token);
+    }
+
+    public void purgingExpiredLink(OffsetDateTime now){
+        coreUploadLinkRepository.deleteAllByEndedAtLessThanEqual(now);
     }
 }

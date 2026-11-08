@@ -1,5 +1,6 @@
 package fr.bastienbories.discorddrivesync.core.repository;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -14,4 +15,7 @@ public interface CoreUploadLinkRepository extends JpaRepository<CoreUploadLink, 
     @EntityGraph (attributePaths = {"user", "discordChannel"})
     Optional<CoreUploadLink> findFullByToken(String token);
 
+    void deleteByToken(String token);
+
+    void deleteAllByEndedAtLessThanEqual(OffsetDateTime now);
 }
