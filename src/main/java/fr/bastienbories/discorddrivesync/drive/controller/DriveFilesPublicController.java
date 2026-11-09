@@ -1,5 +1,7 @@
 package fr.bastienbories.discorddrivesync.drive.controller;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -71,9 +73,15 @@ public class DriveFilesPublicController {
 
     @GetMapping(PublicRoute.Paths.UPLOAD_FILES + "/{token}")
     public String uploadFiles(@PathVariable String token, Model model) {
-        //TODO: check before getByToken of link if already used (create checkIfUsedByToken)
-        
         CoreUploadLink link = coreUploadLinkServices.getByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (link.isUsed()) {
+            throw new ResponseStatusException(HttpStatus.LOCKED);
+        }
+
+        if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
+            throw new ResponseStatusException(HttpStatus.GONE);
+        }
 
         CoreUploadLinkDto linkDto = coreUploadLinkMapper.coreUploadLinkToCoreUploadLinkDto(link);
         List<CoreLabelDto> labelsDto = coreLabelMapper.coreLabelListToCoreLabelDtoList(coreLabelServices.getAll());
