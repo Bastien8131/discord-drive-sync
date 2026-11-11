@@ -11,8 +11,9 @@
     <section th:if="${link.used}">
         <h3>Already used</h3>
     </section>
-    <section th:if="${!link.used}">
-        <form action="" method="post" enctype="multipart/form-data" onsubmit="return isValidForm()">
+    <!-- <section th:if="${!link.used}"> -->
+    <section>
+        <form name="form" id="form">
 
             <fieldset id="checkboxs">
                 <legend>Select the labels to associate</legend>
@@ -41,17 +42,30 @@
                 </div>
             </fieldset>
 
-            <h3 id="labels-error" class="error-message" hidden></h3>
-            <h3 id="files-error" class="error-message" hidden></h3>
-
-            <br><button type="submit">Submit</button>
+            <div id="notification-messages"></div>
         </form>
+        <br><input type="button" value="Submit" onclick="submit()"><span id="loading" hidden></span>
     </section>
 </body>
 
 <style>
-    .error-message{
+    #notification-messages>.error{
         color: red;
+    }
+
+    #notification-messages>.success{
+        color: cornflowerblue;
+    }
+
+    #loading{
+        margin-left: 12px;
+    }
+
+    #loading:after{
+        animation-name: loading;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        content: '⣾';
     }
 
     textarea{
@@ -61,36 +75,183 @@
         resize: none;
         field-sizing: content;
     }
+
+    @keyframes loading {
+        0% {
+            content: "⣾";
+        }
+        12.5% {
+            content: "⣽";
+        }
+        25% {
+            content: "⣻";
+        }
+        37.5% {
+            content: "⢿";
+        }
+        50% {
+            content: "⡿";
+        }
+        62.5% {
+            content: "⣟";
+        }
+        75% {
+            content: "⣯";
+        }
+        87.5% {
+            content: "⣷";
+        }
+    }
 </style>
 
 <script>
-    function isValidForm() {
-        const labelsError = document.getElementById("labels-error")
-        const filesError = document.getElementById("files-error")
+    class NotificationMessage {
+        #node;
 
-        const labels = document.getElementsByName("labelIds");
-        const files = document.getElementsByName("files")[0];
+        constructor(id, type, message){
+            this.id = id;
+            this.type = type;
+            this.hidden = true;
+            this.message = message;
+            this.#node = null
+        }
 
-        var labelsAreSelected = false
-        var filesAreSelected = false
-
-        labels.forEach(label => {
-            if (label.checked) {
-                labelsAreSelected = true
+        get node(){
+            if (this.#node === null){
+                this.buildNode()
             }
-        });
+            this.updateNode()
 
-        filesAreSelected = files.files.length > 0
+            return this.#node
+        }
 
-        updateErrorMessage(labelsError, labelsAreSelected, "You must select at least one label")
-        updateErrorMessage(filesError, filesAreSelected, "You must select at least one file.")
+        buildNode() {
+            const node = document.createElement("h3")
 
-        return filesAreSelected && labelsAreSelected;
+            node.id = this.id
+            node.className = this.type
+            node.hidden = this.hidden
+            node.textContent = this.message
+
+            this.#node = node
+            return node
+        }
+
+        updateNode() {
+            this.#node.hidden = this.hidden
+            this.#node.textContent = this.message
+        }
     }
 
-    function updateErrorMessage(node, hidden, message) {
-        node.hidden = hidden
-        node.textContent = message
+    const formNode = document.getElementById("form");
+    const notifNode = document.getElementById("notification-messages")
+    const loadingNode = document.getElementById("loading")
+    const notifMessages = {
+        labels: new NotificationMessage(
+            "labels-error", "error",
+            "You must select at least one label."
+        ),
+        files: new NotificationMessage(
+            "files-error", "error",
+            "You must select at least one file."
+        ),
+        uploadPartial: new NotificationMessage(
+            "upload-partial-error", "error",
+            "Only some of the files were uploaded."
+        ),
+        responseStatus: new NotificationMessage(
+            "response-status-error", "error",
+            "some probleme"
+        ),
+        upload: new NotificationMessage(
+            "upload-success", "success",
+            "The upload was successful."
+        )
+    }
+
+    function submit() {
+        const formData = new FormData(formNode);
+
+        if (isValidForm(formData)){
+            sendData(formData)
+        }
+
+    }
+
+    async function sendData(formData) {
+        loadingNode.hidden = false
+        try {
+            const response = await fetch(document.URL, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                const msg = `Statut de réponse : ${response.status}`;
+
+                notifMessages.responseStatus.hidden = false,
+                notifMessages.responseStatus.message = msg
+
+                throw new Error(msg);
+            }
+
+            if(response.ok){
+                const result = await response.json();
+                responseResult(result)
+            }
+        } catch (erreur) {
+            console.error(erreur.message);
+        }
+        loadingNode.hidden = true
+        updateNodeMessages()
+    }
+
+    function responseResult(result) {
+        const failureItems = result["failureItems"]
+        const succeededItems = result["succeededItems"]
+
+        if(succeededItems.length > 0 && failureItems.length === 0){
+            notifMessages.upload.hidden = false
+        }
+
+        if(succeededItems.length > 0 && failureItems.length > 0){
+            notifMessages.uploadPartial.hidden = false
+            failureItems.forEach(item => {
+                notifMessages.uploadPartial.message.concat("\n- ",item.filename)
+            });
+        }
+    }
+
+    function isValidForm(formData) {
+        const results = {
+            labels: formData.getAll("labelIds").length > 0,
+            files: formData.getAll("files").filter((file) => file.size > 0).length > 0
+        }
+
+        updateVisibilityErrorMessages(results);
+        updateNodeMessages();
+
+        return results.files && results.labels;
+    }
+
+    function updateNodeMessages(){
+
+        Object.keys(notifMessages).forEach(key => {
+            const msg = notifMessages[key]
+            // console.log(msg)
+            const exist = notifNode.children.namedItem(msg.id)
+            const child = msg.node
+            // child.updateNode()
+            console.log(child)
+
+            if(!exist) notifNode.appendChild(child);
+        });
+    }
+
+    function updateVisibilityErrorMessages(result){
+        Object.keys(result).forEach((key) => {
+            notifMessages[key] !== undefined ? notifMessages[key].hidden = result[key] : console.log(key, ": not exist");
+        })
     }
 
     function updateCharCount(event){
