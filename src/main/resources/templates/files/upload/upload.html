@@ -223,35 +223,25 @@
     }
 
     function isValidForm(formData) {
-        const results = {
-            labels: formData.getAll("labelIds").length > 0,
-            files: formData.getAll("files").filter((file) => file.size > 0).length > 0
-        }
+        const labels = formData.getAll("labelIds").length > 0
+        const files = formData.getAll("files").filter((file) => file.size > 0).length > 0
 
-        updateVisibilityErrorMessages(results);
+        notifMessages.labels.hidden = labels
+        notifMessages.files.hidden = files
+
         updateNodeMessages();
 
-        return results.files && results.labels;
+        return files && labels;
     }
 
     function updateNodeMessages(){
-
         Object.keys(notifMessages).forEach(key => {
             const msg = notifMessages[key]
-            // console.log(msg)
             const exist = notifNode.children.namedItem(msg.id)
             const child = msg.node
-            // child.updateNode()
-            console.log(child)
 
             if(!exist) notifNode.appendChild(child);
         });
-    }
-
-    function updateVisibilityErrorMessages(result){
-        Object.keys(result).forEach((key) => {
-            notifMessages[key] !== undefined ? notifMessages[key].hidden = result[key] : console.log(key, ": not exist");
-        })
     }
 
     function updateCharCount(event){
