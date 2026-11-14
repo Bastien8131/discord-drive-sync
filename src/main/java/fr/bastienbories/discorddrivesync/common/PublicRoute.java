@@ -11,8 +11,10 @@ public enum PublicRoute {
     }
 
     public static final class Paths {
-        public static final String DOWNLOAD_FILES = "/files";
-        public static final String UPLOAD_FILES = "/files/upload";
+        public static final String PUBLIC_PREFIX = "/public";
+
+        public static final String DOWNLOAD_FILES = PUBLIC_PREFIX + "/files";
+        public static final String UPLOAD_FILES = PUBLIC_PREFIX + "/files/upload";
 
         private Paths() {
         }
