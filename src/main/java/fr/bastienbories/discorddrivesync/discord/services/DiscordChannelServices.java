@@ -1,13 +1,15 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
-import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
-import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
-import fr.bastienbories.discorddrivesync.discord.repository.DiscordChannelRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
+import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
+import fr.bastienbories.discorddrivesync.discord.repository.DiscordChannelRepository;
 
 @Service
 @Transactional
@@ -19,7 +21,7 @@ public class DiscordChannelServices {
         this.discordChannelRepository = discordChannelRepository;
     }
 
-    public void save(DiscordChannel discordChannel){
+    public void save(DiscordChannel discordChannel) {
         discordChannelRepository.save(discordChannel);
     }
 
@@ -33,5 +35,9 @@ public class DiscordChannelServices {
 
     public List<DiscordChannel> getAllByLabel(CoreLabel coreLabel) {
         return discordChannelRepository.getAllByLabel(coreLabel);
+    }
+
+    public Collection<? extends DiscordChannel> getAllByLabelId(Long id) {
+        return discordChannelRepository.getAllByLabelId(id);
     }
 }

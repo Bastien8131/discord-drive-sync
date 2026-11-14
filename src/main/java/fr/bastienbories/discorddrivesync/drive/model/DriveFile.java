@@ -1,6 +1,9 @@
 package fr.bastienbories.discorddrivesync.drive.model;
 
 import fr.bastienbories.discorddrivesync.common.HasIdAndName;
+import fr.bastienbories.discorddrivesync.common.PublicRoute;
+import fr.bastienbories.discorddrivesync.common.TextUtils;
+import fr.bastienbories.discorddrivesync.common.UrlServices;
 import fr.bastienbories.discorddrivesync.core.model.CoreContent;
 import fr.bastienbories.discorddrivesync.core.model.CoreLabel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordUser;
@@ -14,7 +17,11 @@ import java.util.List;
 public class DriveFile implements HasIdAndName {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(unique = true)
+    private Long discordId;
 
     private String name;
 
@@ -39,18 +46,24 @@ public class DriveFile implements HasIdAndName {
 
     protected DriveFile() {}
 
-    public DriveFile(long id, String name, String storageKey, DiscordUser uploader) {
-        this.id = id;
+    public DriveFile(String name, String storageKey, DiscordUser uploader) {
+        this.discordId = null;
         this.name = name;
         this.storageKey = storageKey;
-        this.shareToken = generateShareToken();
+        this.shareToken = TextUtils.generateToken();
         this.uploader = uploader;
         this.attachedContents = new ArrayList<>();
         this.labels = new ArrayList<>();
     }
 
-    private String generateShareToken() {
-        return java.util.UUID.randomUUID().toString().replace("-", "");
+    public DriveFile(Long discordId, String name, String storageKey, DiscordUser uploader) {
+        this.discordId = discordId;
+        this.name = name;
+        this.storageKey = storageKey;
+        this.shareToken = TextUtils.generateToken();
+        this.uploader = uploader;
+        this.attachedContents = new ArrayList<>();
+        this.labels = new ArrayList<>();
     }
 
     @Override
@@ -59,7 +72,7 @@ public class DriveFile implements HasIdAndName {
         if (o == null || getClass() != o.getClass()) return false;
 
         DriveFile driveFile = (DriveFile) o;
-        return id == driveFile.id;
+        return id != 0 && id == driveFile.id;
     }
 
     @Override
@@ -69,6 +82,10 @@ public class DriveFile implements HasIdAndName {
 
     public long getId() {
         return id;
+    }
+
+    public Long getDiscordId() {
+        return discordId;
     }
 
     public String getName() {

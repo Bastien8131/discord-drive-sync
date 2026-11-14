@@ -44,4 +44,12 @@ public class TextUtils {
     public static String removeChannelTagFromContent(String contentRaw){
         return contentRaw.replaceAll("<#\\d+>\\s*", "").trim();
     }
+
+    public static String generateUUID() {
+        return java.util.UUID.randomUUID().toString();
+    }
+
+    public static String generateToken() {
+        return generateUUID().replace("-", "");
+    }
 }

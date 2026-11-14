@@ -1,27 +1,40 @@
 package fr.bastienbories.discorddrivesync.discord.services;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import fr.bastienbories.discorddrivesync.common.LogMessages;
 import fr.bastienbories.discorddrivesync.common.TextUtils;
 import fr.bastienbories.discorddrivesync.core.model.CoreLink;
+import fr.bastienbories.discorddrivesync.core.model.CoreUploadLink;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordChannel;
 import fr.bastienbories.discorddrivesync.discord.model.DiscordMessage;
 import fr.bastienbories.discorddrivesync.drive.model.DriveFile;
-import fr.bastienbories.discorddrivesync.drive.services.DriveFileUrlServices;
+import fr.bastienbories.discorddrivesync.drive.result.DriveFileResult.Failure;
+import fr.bastienbories.discorddrivesync.drive.services.DriveFileServices;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 @Service
 @Transactional
 public class DiscordApiServices {
+
+    private static final Logger log = LoggerFactory.getLogger(DiscordApiServices.class);
 
     private final JDA jda;
     private final Guild guild;
@@ -30,15 +43,15 @@ public class DiscordApiServices {
     private final Set<Long> botDeletedChannelIds = ConcurrentHashMap.newKeySet();
     private final Set<Long> botDeletedMessageIds = ConcurrentHashMap.newKeySet();
 
-    private final DriveFileUrlServices driveFileUrlServices;
+    private final DriveFileServices driveFileServices;
 
-    public DiscordApiServices(JDA jda, DriveFileUrlServices driveFileUrlServices) throws InterruptedException {
+    public DiscordApiServices(JDA jda, DriveFileServices driveFileServices) throws InterruptedException {
         this.jda = jda;
         List<Guild> guilds = jda.awaitReady().getGuilds();
         this.guild = guilds.stream().findFirst().orElseThrow(
                 () -> new IllegalStateException("This bot is not associated with any server")
         );
-        this.driveFileUrlServices = driveFileUrlServices;
+        this.driveFileServices = driveFileServices;
     }
 
 //    private String removeChannelTag(String contentRaw){
@@ -54,13 +67,26 @@ public class DiscordApiServices {
         if (!driveFiles.isEmpty()){ contentBuild.append("\n"); }
         for (DriveFile driveFile: driveFiles){
             contentBuild.append("\n");
-            contentBuild.append(driveFileUrlServices.buildUrl(driveFile));
+            contentBuild.append(driveFileServices.buildDownloadLink(driveFile));
         }
 
         if (!links.isEmpty()){ contentBuild.append("\n"); }
         for (CoreLink coreLink: links){
             contentBuild.append("\n");
             contentBuild.append(coreLink.getUrl());
+        }
+
+        return contentBuild.toString();
+    }
+
+    private String buildUploadFailuresMessage(List<Failure> failures){
+        StringBuilder contentBuild = new StringBuilder();
+
+        contentBuild.append("The upload of these files could not be completed : \n");
+
+        for (Failure failure : failures) {
+            contentBuild.append("\n");
+            contentBuild.append(String.format("- %s", failure.filename()));
         }
 
         return contentBuild.toString();
@@ -140,5 +166,33 @@ public class DiscordApiServices {
     public void deleteChannel(TextChannel channel){
         botDeletedChannelIds.add(channel.getIdLong());
         Objects.requireNonNull(guild.getTextChannelById(channel.getIdLong())).delete().queue();
+    }
+
+    public InteractionHook getHook(String interactionToken) {
+        return InteractionHook.from(jda, interactionToken);
+    }
+
+    private void notifyUploadLinkOwner(CoreUploadLink link, String message){
+        if (!link.isInteractionExpired()) {
+            InteractionHook hook = getHook(link.getInteractionToken());
+            hook.sendMessage(message).setEphemeral(true).queue();
+        } else{
+            // Send message in DM
+            long userId = link.getUser().getId();
+            jda.retrieveUserById(userId)
+                .flatMap(user -> user.openPrivateChannel())
+                .flatMap(channel -> channel.sendMessage(message))
+                .queue(null, failure -> {
+                    LogMessages.unexpectedError(log, failure);
+                });
+        }
+    };
+
+    public void notifyUploadFailures(CoreUploadLink link, List<Failure> failures) {
+        notifyUploadLinkOwner(link, buildUploadFailuresMessage(failures));
+    }
+
+    public void notifyUploadUnexpectedError(CoreUploadLink link){
+        notifyUploadLinkOwner(link, "An unexpected error occurred");
     }
 }

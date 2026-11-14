@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload files</title>
+</head>
+
+<body>
+    <section th:if="${link.used}">
+        <h3>Already used</h3>
+    </section>
+    <!-- <section th:if="${!link.used}"> -->
+    <section>
+        <form name="form" id="form">
+
+            <fieldset id="checkboxs">
+                <legend>Select the labels to associate</legend>
+                <div th:each="label : ${labels}">
+                    <input type="checkbox"
+                        name="labelIds"
+                        th:id="|label-${label.id}|"
+                        th:value="${label.id}"
+                        th:checked="${label.id == link.channel.labelId}">
+                    <label th:for="|label-${label.id}|" th:text="${label.name}"></label>
+                </div>
+            </fieldset>
+
+            <fieldset id="textarea">
+                <legend>Add a description to this file/these files? (Leave blank if not)</legend>
+                <textarea name="description" id="description" onkeyup="updateCharCount(event)" maxlength="2000"></textarea>
+                <div id="char-count">
+                    <span name="current">0</span>/<span name="max">2000</span>
+                </div>
+            </fieldset>
+
+            <fieldset id="files">
+                <legend>Select the files to upload from your local drive</legend>
+                <div>
+                    <input type="file" name="files" id="files" multiple/>
+                </div>
+            </fieldset>
+
+            <div id="notification-messages"></div>
+        </form>
+        <br><input type="button" value="Submit" onclick="submit()"><span id="loading" hidden></span>
+    </section>
+</body>
+
+<style>
+    #notification-messages>.error{
+        color: red;
+    }
+
+    #notification-messages>.success{
+        color: cornflowerblue;
+    }
+
+    #loading{
+        margin-left: 12px;
+    }
+
+    #loading:after{
+        animation-name: loading;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        content: '⣾';
+    }
+
+    textarea{
+        min-width: 500px;
+        max-width: 500px;
+        min-height: 50px;
+        resize: none;
+        field-sizing: content;
+    }
+
+    @keyframes loading {
+        0% {
+            content: "⣾";
+        }
+        12.5% {
+            content: "⣽";
+        }
+        25% {
+            content: "⣻";
+        }
+        37.5% {
+            content: "⢿";
+        }
+        50% {
+            content: "⡿";
+        }
+        62.5% {
+            content: "⣟";
+        }
+        75% {
+            content: "⣯";
+        }
+        87.5% {
+            content: "⣷";
+        }
+    }
+</style>
+
+<script>
+    class NotificationMessage {
+        #node;
+
+        constructor(id, type, message){
+            this.id = id;
+            this.type = type;
+            this.hidden = true;
+            this.message = message;
+            this.contentNodes = null;
+            this.#node = null
+        }
+
+        get node(){
+            if (this.#node === null){
+                this.buildNode()
+            }
+            this.updateNode()
+
+            return this.#node
+        }
+
+        buildNode() {
+            const node = document.createElement("h3")
+
+            node.id = this.id
+            node.className = this.type
+            node.hidden = this.hidden
+            node.textContent = this.message
+
+            this.#node = node
+            return node
+        }
+
+        buildContentNodes(details) {
+            const lines = [this.message, ...details.split("\n")]
+            const contentNodes = []
+
+            lines.forEach((line, index) => {
+                if (index > 0) contentNodes.push(document.createElement("br"))
+                contentNodes.push(document.createTextNode(line))
+            });
+
+            this.contentNodes = contentNodes
+            return contentNodes
+        }
+
+        updateNode() {
+            this.#node.hidden = this.hidden
+
+            if (this.contentNodes === null) {
+                this.#node.textContent = this.message
+            } else {
+                this.#node.replaceChildren(...this.contentNodes)
+            }
+        }
+    }
+
+    const formNode = document.getElementById("form");
+    const notifNode = document.getElementById("notification-messages")
+    const loadingNode = document.getElementById("loading")
+    const notifMessages = {
+        labels: new NotificationMessage(
+            "labels-error", "error",
+            "You must select at least one label."
+        ),
+        files: new NotificationMessage(
+            "files-error", "error",
+            "You must select at least one file."
+        ),
+        uploadPartial: new NotificationMessage(
+            "upload-partial-error", "error",
+            "Only some of the files were uploaded."
+        ),
+        responseStatus: new NotificationMessage(
+            "response-status-error", "error",
+            "some probleme"
+        ),
+        upload: new NotificationMessage(
+            "upload-success", "success",
+            "The upload was successful."
+        )
+    }
+
+    function hideAllMessages() {
+        Object.values(notifMessages).forEach(msg => {
+            msg.hidden = true
+        });
+        updateNodeMessages();
+    }
+
+    function statusToMessage(status) {
+        switch (status) {
+            case 400:
+                return "The request is invalid or none of the files could be uploaded.";
+            case 404:
+                return "This upload link does not exist.";
+            case 410:
+                return "This upload link has expired.";
+            case 413:
+                return "The files are too large.";
+            case 423:
+                return "This upload link has already been used.";
+            case 500:
+                return "An unexpected error occurred on the server.";
+            default:
+                return `An unexpected error occurred (status ${status}).`;
+        }
+    }
+
+    function submit() {
+        hideAllMessages()
+        const formData = new FormData(formNode);
+
+        if (isValidForm(formData)){
+            sendData(formData)
+        }
+
+    }
+
+    async function sendData(formData) {
+        loadingNode.hidden = false
+        try {
+            const response = await fetch(document.URL, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                const msg = statusToMessage(response.status);
+
+                notifMessages.responseStatus.hidden = false,
+                notifMessages.responseStatus.message = msg
+
+                throw new Error(msg);
+            }
+
+            if(response.ok){
+                const result = await response.json();
+                responseResult(result)
+            }
+        } catch (erreur) {
+            console.error(erreur.message);
+        }
+        loadingNode.hidden = true
+        updateNodeMessages()
+    }
+
+    function responseResult(result) {
+        const failureItems = result["failureItems"]
+        const succeededItems = result["succeededItems"]
+
+        if(succeededItems.length > 0 && failureItems.length === 0){
+            notifMessages.upload.hidden = false
+        }
+
+        if(succeededItems.length > 0 && failureItems.length > 0){
+            notifMessages.uploadPartial.hidden = false
+            const details = failureItems.map(item => "- " + item.filename).join("\n")
+            notifMessages.uploadPartial.buildContentNodes(details)
+        }
+    }
+
+    function isValidForm(formData) {
+        const labels = formData.getAll("labelIds").length > 0
+        const files = formData.getAll("files").filter((file) => file.size > 0).length > 0
+
+        notifMessages.labels.hidden = labels
+        notifMessages.files.hidden = files
+
+        updateNodeMessages();
+
+        return files && labels;
+    }
+
+    function updateNodeMessages(){
+        Object.keys(notifMessages).forEach(key => {
+            const msg = notifMessages[key]
+            const exist = notifNode.children.namedItem(msg.id)
+            const child = msg.node
+
+            if(!exist) notifNode.appendChild(child);
+        });
+    }
+
+    function updateCharCount(event){
+        const nodesCountUI = document.querySelectorAll("div#char-count>span");
+
+        nodesCountUI.forEach(node => {
+            name = node.attributes.getNamedItem("name").value;
+            if(name == "current"){
+                node.textContent = event.target.value.length
+            }
+        });
+    }
+</script>
+
+</html>
