@@ -113,6 +113,7 @@
             this.type = type;
             this.hidden = true;
             this.message = message;
+            this.contentNodes = null;
             this.#node = null
         }
 
@@ -137,9 +138,27 @@
             return node
         }
 
+        buildContentNodes(details) {
+            const lines = [this.message, ...details.split("\n")]
+            const contentNodes = []
+
+            lines.forEach((line, index) => {
+                if (index > 0) contentNodes.push(document.createElement("br"))
+                contentNodes.push(document.createTextNode(line))
+            });
+
+            this.contentNodes = contentNodes
+            return contentNodes
+        }
+
         updateNode() {
             this.#node.hidden = this.hidden
-            this.#node.textContent = this.message
+
+            if (this.contentNodes === null) {
+                this.#node.textContent = this.message
+            } else {
+                this.#node.replaceChildren(...this.contentNodes)
+            }
         }
     }
 
@@ -169,7 +188,34 @@
         )
     }
 
+    function hideAllMessages() {
+        Object.values(notifMessages).forEach(msg => {
+            msg.hidden = true
+        });
+        updateNodeMessages();
+    }
+
+    function statusToMessage(status) {
+        switch (status) {
+            case 400:
+                return "The request is invalid or none of the files could be uploaded.";
+            case 404:
+                return "This upload link does not exist.";
+            case 410:
+                return "This upload link has expired.";
+            case 413:
+                return "The files are too large.";
+            case 423:
+                return "This upload link has already been used.";
+            case 500:
+                return "An unexpected error occurred on the server.";
+            default:
+                return `An unexpected error occurred (status ${status}).`;
+        }
+    }
+
     function submit() {
+        hideAllMessages()
         const formData = new FormData(formNode);
 
         if (isValidForm(formData)){
@@ -187,7 +233,7 @@
             });
 
             if (!response.ok) {
-                const msg = `Statut de réponse : ${response.status}`;
+                const msg = statusToMessage(response.status);
 
                 notifMessages.responseStatus.hidden = false,
                 notifMessages.responseStatus.message = msg
@@ -216,9 +262,8 @@
 
         if(succeededItems.length > 0 && failureItems.length > 0){
             notifMessages.uploadPartial.hidden = false
-            failureItems.forEach(item => {
-                notifMessages.uploadPartial.message.concat("\n- ",item.filename)
-            });
+            const details = failureItems.map(item => "- " + item.filename).join("\n")
+            notifMessages.uploadPartial.buildContentNodes(details)
         }
     }
 
