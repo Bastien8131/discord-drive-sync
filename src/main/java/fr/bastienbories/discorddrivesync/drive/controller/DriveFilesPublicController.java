@@ -75,13 +75,13 @@ public class DriveFilesPublicController {
     public String uploadFiles(@PathVariable String token, Model model) {
         CoreUploadLink link = coreUploadLinkServices.getByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        // if (link.isUsed()) {
-        //     throw new ResponseStatusException(HttpStatus.LOCKED);
-        // }
+        if (link.isUsed()) {
+            throw new ResponseStatusException(HttpStatus.LOCKED);
+        }
 
-        // if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
-        //     throw new ResponseStatusException(HttpStatus.GONE);
-        // }
+        if (link.getEndedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))){
+            throw new ResponseStatusException(HttpStatus.GONE);
+        }
 
         CoreUploadLinkDto linkDto = coreUploadLinkMapper.coreUploadLinkToCoreUploadLinkDto(link);
         List<CoreLabelDto> labelsDto = coreLabelMapper.coreLabelListToCoreLabelDtoList(coreLabelServices.getAll());
